@@ -17,12 +17,6 @@ namespace GeneTree
         public Form1()
         {
             InitializeComponent();
-
-            //build a simple tree structure
-
-            //build a simple "testing" structure
-
-            //combine the two to make a random tree
         }
 
         List<DataPoint> dataPoints = new List<DataPoint>();
@@ -30,9 +24,9 @@ namespace GeneTree
         private void btnLoadData_Click(object sender, EventArgs e)
         {
             //open the file
-
             var reader = new StreamReader(new FileStream("data/iris/iris.data", FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 
+            //parse the CSV data and create data points
             while (!reader.EndOfStream)
             {
                 var line = reader.ReadLine();
@@ -42,10 +36,9 @@ namespace GeneTree
                     continue;
                 }
 
+                //this part is hard coded to IRIS data file
                 var values = line.Split(',');
-
                 var data = values.Take(values.Length - 1).Select(x => double.Parse(x)).ToArray();
-
                 dataPoints.Add(new DataPoint() { Data = data, Classification = values[values.Length - 1] });
             }
         }
@@ -54,45 +47,14 @@ namespace GeneTree
         string[] classes;
         Dictionary<int, List<double>> ranges = new Dictionary<int, List<double>>();
 
-        private void btnMakePredictions_Click(object sender, EventArgs e)
-        {
-            //get a list of all possible groups
-
-            classes = dataPoints.GroupBy(x => x.Classification).Select(x => x.Key).ToArray();
-
-            //randomly select a group
-            int correct = 0;
-
-            foreach (var item in dataPoints)
-            {
-
-                var intTest = rando.Next(classes.Length);
-                var classTest = classes[intTest];
-
-                if (item.Classification == classTest)
-                {
-                    correct++;
-                }
-            }
-
-            //determine accuracy
-            lblRandoRight.Text = String.Format("{0} of {1} = {2}", correct, dataPoints.Count, 1.0 * correct / dataPoints.Count);
-
-        }
-
         private void btnRandomTree_Click(object sender, EventArgs e)
         {
-            //build a random tree
-
-            var tree = new Tree();
-
             //create classes and ranges
             classes = dataPoints.GroupBy(x => x.Classification).Select(x => x.Key).ToArray();
 
+            //get min/max ranges for the data
             int paramCount = dataPoints[0].Data.Length;
-
             ranges.Clear();
-
             for (int i = 0; i < paramCount; i++)
             {
                 double max = dataPoints.Max(x => x.Data[i]);
@@ -101,9 +63,9 @@ namespace GeneTree
                 ranges.Add(i, new List<double> { min, max });
             }
 
-            //need a param and min/max
+            //build a random tree
+            var tree = new Tree();
             var root = new TreeNode();
-
             var test = new TreeTest();
             test.param = rando.Next(paramCount);
             test.valTest = rando.NextDouble() * (ranges[test.param][1] - ranges[test.param][0]) + ranges[test.param][0];
@@ -111,7 +73,8 @@ namespace GeneTree
 
             root.Test = test;
             tree.root = root;
-
+            
+            //run a queue to create children for non-terminal nodes
             Queue<TreeNode> nonTermNodes = new Queue<TreeNode>();
             nonTermNodes.Enqueue(root);
 
@@ -120,8 +83,6 @@ namespace GeneTree
                 var node = nonTermNodes.Dequeue();
 
                 //need to create two new nodes, yes and no
-
-                //decided if terminal... if yes, give a group
                 List<TreeNode> yesNoNodes = new List<TreeNode>();
 
                 for (int i = 0; i < 2; i++)
@@ -152,6 +113,7 @@ namespace GeneTree
                 tree.edges.Add(node, yesNoNodes);
             }
 
+            //output the tree structure
             Console.WriteLine(tree.ToString());
 
             //run the data through and report predictions
@@ -164,7 +126,7 @@ namespace GeneTree
                 }
             }
 
-            //determine accuracy
+            //report accuracy
             Console.WriteLine("{0} of {1} = {2}", correct, dataPoints.Count, 1.0 * correct / dataPoints.Count);
         }
     }
@@ -196,14 +158,12 @@ namespace GeneTree
         {
             return string.Format("param {0}, LTE test {1}, val {2}", param, isLessThanEqualTest, valTest);
         }
-
     }
 
     public class Tree
     {
         public TreeNode root;
-        public Dictionary<TreeNode, List<TreeNode>> edges = new Dictionary<TreeNode,List<TreeNode>>();
-        public List<TreeNode> nodes = new List<TreeNode>();
+        public Dictionary<TreeNode, List<TreeNode>> edges = new Dictionary<TreeNode, List<TreeNode>>();
 
         public bool TraverseData(DataPoint point)
         {
