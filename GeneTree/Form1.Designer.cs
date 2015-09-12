@@ -30,6 +30,7 @@
         {
             this.btnLoadData = new System.Windows.Forms.Button();
             this.btnRandomTree = new System.Windows.Forms.Button();
+            this.btnPoolRando = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnLoadData
@@ -52,11 +53,22 @@
             this.btnRandomTree.UseVisualStyleBackColor = true;
             this.btnRandomTree.Click += new System.EventHandler(this.btnRandomTree_Click);
             // 
+            // btnPoolRando
+            // 
+            this.btnPoolRando.Location = new System.Drawing.Point(46, 205);
+            this.btnPoolRando.Name = "btnPoolRando";
+            this.btnPoolRando.Size = new System.Drawing.Size(203, 53);
+            this.btnPoolRando.TabIndex = 1;
+            this.btnPoolRando.Text = "build pool of randoms";
+            this.btnPoolRando.UseVisualStyleBackColor = true;
+            this.btnPoolRando.Click += new System.EventHandler(this.btnPoolRando_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(335, 351);
+            this.Controls.Add(this.btnPoolRando);
             this.Controls.Add(this.btnRandomTree);
             this.Controls.Add(this.btnLoadData);
             this.Name = "Form1";
@@ -69,6 +81,7 @@
 
         private System.Windows.Forms.Button btnLoadData;
         private System.Windows.Forms.Button btnRandomTree;
+        private System.Windows.Forms.Button btnPoolRando;
     }
 }
 

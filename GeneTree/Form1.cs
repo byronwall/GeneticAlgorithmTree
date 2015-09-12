@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,19 @@ namespace GeneTree
         public Form1()
         {
             InitializeComponent();
+
+            Trace.Listeners.Clear();
+
+            TextWriterTraceListener twtl = new TextWriterTraceListener(string.Format("trace files/trace {0}.txt", DateTime.Now.Ticks));
+            twtl.Name = "TextLogger";
+            twtl.TraceOutputOptions = TraceOptions.ThreadId | TraceOptions.DateTime;
+
+            //ConsoleTraceListener ctl = new ConsoleTraceListener(false);
+            //ctl.TraceOutputOptions = TraceOptions.DateTime;
+
+            Trace.Listeners.Add(twtl);
+            //Trace.Listeners.Add(ctl);
+            Trace.AutoFlush = true;
         }
 
         List<DataPoint> dataPoints = new List<DataPoint>();
@@ -49,6 +63,11 @@ namespace GeneTree
 
         private void btnRandomTree_Click(object sender, EventArgs e)
         {
+            CreateRandomTreeAndPredict();
+        }
+
+        private Tree CreateRandomTreeAndPredict()
+        {
             //create classes and ranges
             classes = dataPoints.GroupBy(x => x.Classification).Select(x => x.Key).ToArray();
 
@@ -73,7 +92,7 @@ namespace GeneTree
 
             root.Test = test;
             tree.root = root;
-            
+
             //run a queue to create children for non-terminal nodes
             Queue<TreeNode> nonTermNodes = new Queue<TreeNode>();
             nonTermNodes.Enqueue(root);
@@ -114,20 +133,127 @@ namespace GeneTree
             }
 
             //output the tree structure
-            Console.WriteLine(tree.ToString());
+            Trace.WriteLine(tree.ToString());
 
-            //run the data through and report predictions
-            int correct = 0;
-            foreach (var item in dataPoints)
+            return tree;
+        }
+
+        private void btnPoolRando_Click(object sender, EventArgs e)
+        {
+            CreateRandomPoolOfTrees(20);
+        }
+
+        private IEnumerable<Tree> CreateRandomPoolOfTrees(int size)
+        {
+            //create a number of random trees and report results from all of them
+            List<Tuple<double, Tree>> results = new List<Tuple<double, Tree>>();
+
+            for (int i = 0; i < size; i++)
             {
-                if (tree.TraverseData(item))
+                var tree = CreateRandomTreeAndPredict();
+
+                int correct = 0;
+                foreach (var item in dataPoints)
                 {
-                    correct++;
+                    if (tree.TraverseData(item))
+                    {
+                        correct++;
+                    }
+                }
+
+                double ratio = 1.0 * correct / dataPoints.Count;
+
+                //report accuracy
+                Trace.WriteLine(String.Format("{0} of {1} = {2}", correct, dataPoints.Count, ratio));
+
+                results.Add(new Tuple<double, Tree>(Math.Pow(ratio, 2) / tree.edges.Count, tree));
+            }
+
+            var temp = results.Select(x => x.Item1).OrderByDescending(x => x).Take(size / 2);
+
+            Trace.Write(String.Join("\r\n", temp));
+
+            //TODO: remove this selection step
+            return results.OrderByDescending(x => x.Item1).Select(x => x.Item2).Take(10);
+        }
+        private void ProcessTheNextGeneration()
+        {
+            int populationSize = 20;
+
+            //start with a list of trees
+            var starter = CreateRandomPoolOfTrees(populationSize);
+
+            //do the gene operations
+            int generations = 10;
+
+            List<Tree> newCreations = new List<Tree>();
+
+            for (int i = 0; i < generations; i++)
+            {
+                for (int j = 0; j < populationSize; j++)
+                {
+                    //make a new one!
+                    var tester = rando.NextDouble();
+
+                    if (tester < 0.25)
+                    {
+                        //node swap
+
+                        //pick a tree
+                        //pick a node in that tree
+
+                        //pick another tree
+                        //pick a node in that tree
+
+                        //create a new tree which is a copy of node 1's tree (or randomly pick which one)
+                        //find the parent of node 1 in the new tree
+                        //change the edge for the parent to point to node 2 instead of node 1
+
+
+                    }
+                    else if (tester < 0.5)
+                    {
+                        //node deletion
+
+                        //pick a tree
+                        //make a copy of that tree
+                        //pick a node in that copy
+                        //find the parent of that node
+                        //edit the edge to point to one of the children of chosen node
+
+                    }
+                    else if (tester < 0.6)
+                    {
+                        //node parameter/value change
+
+                        //pick a tree
+                        //make a copy of that tree
+                        //pick a node
+                        //find the parent of that node
+
+                        //create a new node with random param and value
+                        //edit the edge for the parent to point to the new node
+                        //edit the edge for the new node to point to the same children as the chosen node
+
+                    }
+                    else
+                    {
+                        //all random new
+
+                        //make a random tree and add it to the gene pool
+                    }
                 }
             }
 
-            //report accuracy
-            Console.WriteLine("{0} of {1} = {2}", correct, dataPoints.Count, 1.0 * correct / dataPoints.Count);
+            //we need to generate X new items
+
+            //for each new item, pick between all the alternatives
+
+
+            //combine all those new trees and process
+
+            //rinse, repeat
+
         }
     }
     public class DataPoint
@@ -165,9 +291,47 @@ namespace GeneTree
         public TreeNode root;
         public Dictionary<TreeNode, List<TreeNode>> edges = new Dictionary<TreeNode, List<TreeNode>>();
 
+        public static Tree Copy(Tree source)
+        {
+            Tree copy = new Tree();
+            copy.root = source.root;
+            copy.edges = new Dictionary<TreeNode, List<TreeNode>>(source.edges);
+
+            return copy;
+        }
+
         public bool TraverseData(DataPoint point)
         {
             return TraverseData(root, point);
+        }
+
+        public TreeNode FindParentNode(TreeNode child)
+        {
+            return FindParentNode(child, root);
+        }
+        public TreeNode FindParentNode(TreeNode child, TreeNode possibleParent)
+        {
+            //stop if child is in list of edges
+            if (edges[possibleParent].Contains(child))
+            {
+                return possibleParent;
+            }
+            else
+            {
+                foreach (var nextPossibleParent in edges[possibleParent])
+                {
+                    var temp = FindParentNode(child, nextPossibleParent);
+
+                    if (temp != null)
+                    {
+                        return temp;
+                    }
+                }
+            }
+
+            return null;
+
+            //else proces the edges
         }
 
         public bool TraverseData(TreeNode node, DataPoint point)
