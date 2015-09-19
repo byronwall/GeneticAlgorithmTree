@@ -25,11 +25,7 @@ namespace GeneTree
             twtl.Name = "TextLogger";
             twtl.TraceOutputOptions = TraceOptions.ThreadId | TraceOptions.DateTime;
 
-            //ConsoleTraceListener ctl = new ConsoleTraceListener(false);
-            //ctl.TraceOutputOptions = TraceOptions.DateTime;
-
             Trace.Listeners.Add(twtl);
-            //Trace.Listeners.Add(ctl);
             Trace.AutoFlush = true;
         }
 
@@ -37,8 +33,14 @@ namespace GeneTree
 
         private void btnLoadData_Click(object sender, EventArgs e)
         {
-            //open the file
-            var reader = new StreamReader(new FileStream("data/iris/iris.data", FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+            string path = "data/iris/iris.data";
+            LoadDataFile(path);
+        }
+
+        private void LoadDataFile(string path)
+        {
+            //TODO this method should split the data into test/train in order to better evaluate the tree
+            var reader = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 
             //parse the CSV data and create data points
             while (!reader.EndOfStream)
@@ -58,15 +60,16 @@ namespace GeneTree
         }
 
         Random rando = new Random();
+        //TODO classes and ranges should be moved to a general data class helper and not the main form
         string[] classes;
         Dictionary<int, List<double>> ranges = new Dictionary<int, List<double>>();
 
         private void btnRandomTree_Click(object sender, EventArgs e)
         {
-            CreateRandomTreeAndPredict();
+            CreateRandomTree();
         }
 
-        private Tree CreateRandomTreeAndPredict()
+        private Tree CreateRandomTree()
         {
             //create classes and ranges
             classes = dataPoints.GroupBy(x => x.Classification).Select(x => x.Key).ToArray();
@@ -109,6 +112,12 @@ namespace GeneTree
                     var nodeYes = new TreeNode();
                     nodeYes.IsTerminal = rando.NextDouble() > 0.5;
 
+                    //TODO: consider changing this or using some other scheme to prevent runaway initial trees.
+                    if (tree.edges.Count > 20)
+                    {
+                        nodeYes.IsTerminal = true;
+                    }
+
                     if (nodeYes.IsTerminal)
                     {
                         //class
@@ -143,46 +152,29 @@ namespace GeneTree
             //CreateRandomPoolOfTrees(20);
 
             ProcessTheNextGeneration();
+
+            MessageBox.Show("the test is completed");
         }
 
         private List<Tree> CreateRandomPoolOfTrees(int size)
         {
             //create a number of random trees and report results from all of them
-            List<Tuple<double, Tree>> results = new List<Tuple<double, Tree>>();
+            List<Tree> results = new List<Tree>();
 
             for (int i = 0; i < size; i++)
             {
-                var tree = CreateRandomTreeAndPredict();
-
-                int correct = 0;
-                foreach (var item in dataPoints)
-                {
-                    if (tree.TraverseData(item))
-                    {
-                        correct++;
-                    }
-                }
-
-                double ratio = 1.0 * correct / dataPoints.Count;
-
-                //report accuracy
-                //Trace.WriteLine(String.Format("{0} of {1} = {2}", correct, dataPoints.Count, ratio));
-
-                results.Add(new Tuple<double, Tree>(Math.Pow(ratio, 2) / tree.edges.Count, tree));
+                results.Add(CreateRandomTree());
             }
 
-            var temp = results.Select(x => x.Item1).OrderByDescending(x => x).Take(size / 2);
-
-            //Trace.Write(String.Join("\r\n", temp));
-
-            //TODO: remove this selection step
-            return results.OrderByDescending(x => x.Item1).Select(x => x.Item2).Take(10).ToList();
+            return results;
         }
 
-        private List<Tree> ProcessPoolOfTrees(IEnumerable<Tree> trees)
+        private List<Tree> ProcessPoolOfTrees(IEnumerable<Tree> trees, int generationNumber)
         {
             //create a number of random trees and report results from all of them
             List<Tuple<double, Tree>> results = new List<Tuple<double, Tree>>();
+
+            Trace.WriteLine("doing the eval: ratio");
 
             foreach (var tree in trees)
             {
@@ -200,42 +192,48 @@ namespace GeneTree
                 //report accuracy
                 //Trace.WriteLine(String.Format("{0} of {1} = {2}", correct, dataPoints.Count, ratio));
 
-                results.Add(new Tuple<double, Tree>(Math.Pow(ratio,4) / Math.Sqrt(tree.edges.Count), tree));
+                //TODO improve the hueristic for evaluation
+                //TODO consider splitting this to consider tree size later in the game
+                double score = (generationNumber > 25) ?
+                    Math.Pow(ratio, 4) / Math.Log10(tree.edges.Count + 1) :
+                    Math.Pow(ratio, 4) / Math.Log10(2);
+
+                score = ratio;
+
+                results.Add(new Tuple<double, Tree>(score, tree));
             }
 
-            var temp = results.Select(x => x.Item1).OrderByDescending(x => x).Take(trees.Count() / 2);
-
-            Trace.WriteLine(String.Join("\r\n", temp));
-
+            Trace.WriteLine(String.Join("\r\n", results.Select(x => x.Item1).OrderByDescending(x => x).Take(Math.Min(trees.Count() / 2, 10))));
             Trace.WriteLine(results.OrderByDescending(x => x.Item1).Select(x => x.Item2).First());
 
-            //TODO: remove this selection step
-            return results.OrderByDescending(x => x.Item1).Select(x => x.Item2).Take(10).ToList();
+            //TODO improve the selection here to not just take the top half, maybe iterate them all and select based on the score
+            return results.OrderByDescending(x => x.Item1).Select(x => x.Item2).Take(trees.Count() / 2).ToList();
         }
-
+        //TODO move the processing code into a GeneticOperations class to handle it all
         private void ProcessTheNextGeneration()
         {
             int populationSize = 50;
 
-            //start with a list of trees
+            //start with a list of trees and trim it down
             var starter = CreateRandomPoolOfTrees(populationSize);
+            starter = ProcessPoolOfTrees(starter, 1);
 
             //do the gene operations
             int generations = 50;
 
             List<Tree> newCreations = new List<Tree>();
 
-            for (int i = 0; i < generations; i++)
+            for (int generationNumber = 0; generationNumber < generations; generationNumber++)
             {
-                Trace.WriteLine(i);
-                for (int j = 0; j < populationSize; j++)
+                Trace.WriteLine("generation: " + generationNumber);
+                for (int populationNumber = 0; populationNumber < populationSize; populationNumber++)
                 {
                     //make a new one!
                     var tester = rando.NextDouble();
 
-                    //TODO: write this code for real
+                    //TODO: all of these stubs need to be turned into a new class that abstracts away the behavior
 
-                    if (tester < 0.25)
+                    if (tester < 0.4)
                     {
                         //node swap
 
@@ -264,7 +262,7 @@ namespace GeneTree
                             {
                                 tree3.root = edge2.Key;
                                 tree3.edges.Remove(edge1.Key);
-                                tree3.edges.Add(edge2.Key, edge2.Value);
+                                tree3.edges.Add(edge2.Key, new List<TreeNode>(edge2.Value));
                             }
                             else
                             {
@@ -275,15 +273,14 @@ namespace GeneTree
                                 //change the edge for the parent to point to node 2 instead of node 1
                                 for (int k = 0; k < tree3.edges[parent1].Count; k++)
                                 {
-                                    var item = tree3.edges[parent1][k];
-                                    if (item == edge1.Key)
+                                    if (tree3.edges[parent1][k] == edge1.Key)
                                     {
                                         //swap the parent to the new node
                                         //bring the new node's edge into this tree
                                         //remove the old node from the edges
                                         tree3.edges[parent1][k] = edge2.Key;
                                         tree3.edges.Remove(edge1.Key);
-                                        tree3.edges.Add(edge2.Key, edge2.Value);
+                                        tree3.edges.Add(edge2.Key, new List<TreeNode>(edge2.Value));
 
                                         break;
                                     }
@@ -296,7 +293,8 @@ namespace GeneTree
                         //TODO: consider a check to prevent the same node from being added more than once
 
                     }
-                    else if (tester < 0.35)
+                    //TODO remove this bypass on node deletion, the problem seems to be related to deleting terminal nodes?
+                    else if (false && tester < 0.35)
                     {
                         //node deletion
 
@@ -310,7 +308,6 @@ namespace GeneTree
                         }
                         else
                         {
-
                             //make a copy of that tree
                             Tree tree2 = tree1.Copy();
                             //pick a node in that copy
@@ -337,7 +334,6 @@ namespace GeneTree
                                 }
                             }
 
-
                             newCreations.Add(tree2);
                         }
 
@@ -346,8 +342,6 @@ namespace GeneTree
                     {
                         //node parameter/value change
 
-
-
                         //pick a tree
                         Tree tree1 = starter[rando.Next(starter.Count())];
                         //make a copy of that tree
@@ -355,6 +349,7 @@ namespace GeneTree
                         //pick a node in that copy
                         var edge2 = tree2.edges.ElementAt(rando.Next(tree2.edges.Count));
 
+                        //TODO turn this into a general helper method to create a new random node
                         //create a new node with random param and value
                         var nodeNew = new TreeNode();
                         var test = new TreeTest();
@@ -369,7 +364,6 @@ namespace GeneTree
                             tree2.root = nodeNew;
                             tree2.edges.Add(nodeNew, new List<TreeNode>(tree2.edges[edge2.Key]));
                             tree2.edges.Remove(edge2.Key);
-
                         }
                         else
                         {
@@ -392,39 +386,33 @@ namespace GeneTree
                         }
 
                         newCreations.Add(tree2);
-
                     }
                     else
                     {
                         //all random new
-                        var tree2 = CreateRandomTreeAndPredict();
-
+                        var tree2 = CreateRandomTree();
                         newCreations.Add(tree2);
-
-                        //make a random tree and add it to the gene pool
                     }
                 }
 
                 starter.AddRange(newCreations);
-
-                starter = ProcessPoolOfTrees(starter);
+                starter = ProcessPoolOfTrees(starter, generationNumber);
             }
+        }
 
-            //we need to generate X new items
-
-            //for each new item, pick between all the alternatives
-
-
-            //combine all those new trees and process
-
-
-
-            //rinse, repeat
-
+        private void btnLoadSecondData_Click(object sender, EventArgs e)
+        {
+            string path = "data/balance-scale/data.csv";
+            LoadDataFile(path);
         }
     }
+
+    //TODO all of these classes need to go into their own files
+
     public class DataPoint
     {
+        //TODO DataPoint needs to be upgraded to handle various data types instead of double
+
         public double[] Data;
         public string Classification;
     }
@@ -434,6 +422,8 @@ namespace GeneTree
         public int param; //data array index to test
         public double valTest; // value to test, low
         public bool isLessThanEqualTest; //returns true if
+
+        //TODO add the ability to test against another value in the data, will work against the balance scale data
 
         public bool isTrueTest(DataPoint point)
         {
@@ -462,7 +452,7 @@ namespace GeneTree
         {
             Tree copy = new Tree();
             copy.root = this.root;
-            copy.edges = new Dictionary<TreeNode, List<TreeNode>>(this.edges);
+            copy.edges = new Dictionary<TreeNode, List<TreeNode>>();
 
             foreach (var item in this.edges)
             {
@@ -507,8 +497,6 @@ namespace GeneTree
             }
 
             return null;
-
-            //else proces the edges
         }
 
         public bool TraverseData(TreeNode node, DataPoint point)
@@ -572,7 +560,6 @@ namespace GeneTree
             {
                 return Test.ToString();
             }
-
         }
     }
 }
