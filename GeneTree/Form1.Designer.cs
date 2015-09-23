@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.btnLoadData = new System.Windows.Forms.Button();
-            this.btnRandomTree = new System.Windows.Forms.Button();
             this.btnPoolRando = new System.Windows.Forms.Button();
             this.btnLoadSecondData = new System.Windows.Forms.Button();
+            this.btnDataBig = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnLoadData
@@ -44,21 +44,11 @@
             this.btnLoadData.UseVisualStyleBackColor = true;
             this.btnLoadData.Click += new System.EventHandler(this.btnLoadData_Click);
             // 
-            // btnRandomTree
-            // 
-            this.btnRandomTree.Location = new System.Drawing.Point(46, 123);
-            this.btnRandomTree.Name = "btnRandomTree";
-            this.btnRandomTree.Size = new System.Drawing.Size(203, 53);
-            this.btnRandomTree.TabIndex = 1;
-            this.btnRandomTree.Text = "create rando tree and predict";
-            this.btnRandomTree.UseVisualStyleBackColor = true;
-            this.btnRandomTree.Click += new System.EventHandler(this.btnRandomTree_Click);
-            // 
             // btnPoolRando
             // 
-            this.btnPoolRando.Location = new System.Drawing.Point(46, 205);
+            this.btnPoolRando.Location = new System.Drawing.Point(46, 87);
             this.btnPoolRando.Name = "btnPoolRando";
-            this.btnPoolRando.Size = new System.Drawing.Size(203, 53);
+            this.btnPoolRando.Size = new System.Drawing.Size(309, 51);
             this.btnPoolRando.TabIndex = 1;
             this.btnPoolRando.Text = "build pool of randoms";
             this.btnPoolRando.UseVisualStyleBackColor = true;
@@ -74,13 +64,23 @@
             this.btnLoadSecondData.UseVisualStyleBackColor = true;
             this.btnLoadSecondData.Click += new System.EventHandler(this.btnLoadSecondData_Click);
             // 
+            // btnDataBig
+            // 
+            this.btnDataBig.Location = new System.Drawing.Point(255, 25);
+            this.btnDataBig.Name = "btnDataBig";
+            this.btnDataBig.Size = new System.Drawing.Size(100, 56);
+            this.btnDataBig.TabIndex = 0;
+            this.btnDataBig.Text = "load BIG!!data";
+            this.btnDataBig.UseVisualStyleBackColor = true;
+            this.btnDataBig.Click += new System.EventHandler(this.btnDataBig_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(335, 468);
+            this.ClientSize = new System.Drawing.Size(390, 174);
             this.Controls.Add(this.btnPoolRando);
-            this.Controls.Add(this.btnRandomTree);
+            this.Controls.Add(this.btnDataBig);
             this.Controls.Add(this.btnLoadSecondData);
             this.Controls.Add(this.btnLoadData);
             this.Name = "Form1";
@@ -92,9 +92,9 @@
         #endregion
 
         private System.Windows.Forms.Button btnLoadData;
-        private System.Windows.Forms.Button btnRandomTree;
         private System.Windows.Forms.Button btnPoolRando;
         private System.Windows.Forms.Button btnLoadSecondData;
+        private System.Windows.Forms.Button btnDataBig;
     }
 }
 

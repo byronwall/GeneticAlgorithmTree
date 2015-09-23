@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace GeneTree
@@ -29,7 +25,7 @@ namespace GeneTree
             Trace.AutoFlush = true;
         }
 
-        List<DataPoint> dataPoints = new List<DataPoint>();
+
 
         private void btnLoadData_Click(object sender, EventArgs e)
         {
@@ -55,42 +51,28 @@ namespace GeneTree
                 //this part is hard coded to IRIS data file
                 var values = line.Split(',');
                 var data = values.Take(values.Length - 1).Select(x => double.Parse(x)).ToArray();
-                dataPoints.Add(new DataPoint() { Data = data, Classification = values[values.Length - 1] });
+                dataPointMgr.dataPoints.Add(new DataPoint() { Data = data, Classification = values[values.Length - 1] });
             }
+
+            //create classes and ranges
+            dataPointMgr.DetermineClasses();
+
+            //get min/max ranges for the data
+            dataPointMgr.DetermineRanges();
         }
 
         Random rando = new Random();
-        //TODO classes and ranges should be moved to a general data class helper and not the main form
-        string[] classes;
-        Dictionary<int, List<double>> ranges = new Dictionary<int, List<double>>();
 
-        private void btnRandomTree_Click(object sender, EventArgs e)
-        {
-            CreateRandomTree();
-        }
+        DataPointManager dataPointMgr = new DataPointManager();
 
         private Tree CreateRandomTree()
         {
-            //create classes and ranges
-            classes = dataPoints.GroupBy(x => x.Classification).Select(x => x.Key).ToArray();
-
-            //get min/max ranges for the data
-            int paramCount = dataPoints[0].Data.Length;
-            ranges.Clear();
-            for (int i = 0; i < paramCount; i++)
-            {
-                double max = dataPoints.Max(x => x.Data[i]);
-                double min = dataPoints.Min(x => x.Data[i]);
-
-                ranges.Add(i, new List<double> { min, max });
-            }
-
             //build a random tree
             var tree = new Tree();
             var root = new TreeNode();
             var test = new TreeTest();
-            test.param = rando.Next(paramCount);
-            test.valTest = rando.NextDouble() * (ranges[test.param][1] - ranges[test.param][0]) + ranges[test.param][0];
+            test.param = rando.Next(dataPointMgr.paramCount);
+            test.valTest = rando.NextDouble() * (dataPointMgr.ranges[test.param][1] - dataPointMgr.ranges[test.param][0]) + dataPointMgr.ranges[test.param][0];
             test.isLessThanEqualTest = rando.NextDouble() > 0.5;
 
             root.Test = test;
@@ -113,7 +95,7 @@ namespace GeneTree
                     nodeYes.IsTerminal = rando.NextDouble() > 0.5;
 
                     //TODO: consider changing this or using some other scheme to prevent runaway initial trees.
-                    if (tree.edges.Count > 20)
+                    if (tree.edges.Count > 12)
                     {
                         nodeYes.IsTerminal = true;
                     }
@@ -121,13 +103,13 @@ namespace GeneTree
                     if (nodeYes.IsTerminal)
                     {
                         //class
-                        nodeYes.Classification = classes[rando.Next(classes.Length)];
+                        nodeYes.Classification = dataPointMgr.classes[rando.Next(dataPointMgr.classes.Length)];
                     }
                     else
                     {
                         var testYes = new TreeTest();
-                        testYes.param = rando.Next(paramCount);
-                        testYes.valTest = rando.NextDouble() * (ranges[testYes.param][1] - ranges[testYes.param][0]) + ranges[testYes.param][0];
+                        testYes.param = rando.Next(dataPointMgr.paramCount);
+                        testYes.valTest = rando.NextDouble() * (dataPointMgr.ranges[testYes.param][1] - dataPointMgr.ranges[testYes.param][0]) + dataPointMgr.ranges[testYes.param][0];
                         testYes.isLessThanEqualTest = rando.NextDouble() > 0.5;
 
                         nodeYes.Test = testYes;
@@ -179,15 +161,16 @@ namespace GeneTree
             foreach (var tree in trees)
             {
                 int correct = 0;
-                foreach (var item in dataPoints)
+                foreach (var item in dataPointMgr.dataPoints)
                 {
+                    //TODO add a Rand test here to only select some portion of the data for testing, maybe do a "big" test every so often
                     if (tree.TraverseData(item))
                     {
                         correct++;
                     }
                 }
 
-                double ratio = 1.0 * correct / dataPoints.Count;
+                double ratio = 1.0 * correct / dataPointMgr.dataPoints.Count;
 
                 //report accuracy
                 //Trace.WriteLine(String.Format("{0} of {1} = {2}", correct, dataPoints.Count, ratio));
@@ -198,7 +181,7 @@ namespace GeneTree
                     Math.Pow(ratio, 4) / Math.Log10(tree.edges.Count + 1) :
                     Math.Pow(ratio, 4) / Math.Log10(2);
 
-                score = ratio;
+                //score = ratio;
 
                 results.Add(new Tuple<double, Tree>(score, tree));
             }
@@ -212,17 +195,18 @@ namespace GeneTree
         //TODO move the processing code into a GeneticOperations class to handle it all
         private void ProcessTheNextGeneration()
         {
-            int populationSize = 50;
+            int populationSize = 200;
 
             //start with a list of trees and trim it down
             var starter = CreateRandomPoolOfTrees(populationSize);
             starter = ProcessPoolOfTrees(starter, 1);
 
             //do the gene operations
-            int generations = 50;
+            int generations = 10;
 
             List<Tree> newCreations = new List<Tree>();
 
+            //TODO add a step to check for "convergence" and stop iterating
             for (int generationNumber = 0; generationNumber < generations; generationNumber++)
             {
                 Trace.WriteLine("generation: " + generationNumber);
@@ -237,6 +221,8 @@ namespace GeneTree
                     {
                         //node swap
 
+                        //TODO, this needs to swap entire chunks of trees -or- create a new method that does that
+
                         //pick a tree
                         //pick a node in that tree
                         Tree tree1 = starter[rando.Next(starter.Count())];
@@ -247,13 +233,12 @@ namespace GeneTree
                         var edge2 = tree2.edges.ElementAt(rando.Next(tree2.edges.Count));
 
                         //TODO: clean up this trap for a node that already exists in the tree
-                        if (tree1.edges.ContainsKey(edge2.Key))
+                        if (tree1.ContainsNodeOrChildren(tree2, edge2.Key))
                         {
 
                         }
                         else
                         {
-
                             //create a new tree which is a copy of node 1's tree (or randomly pick which one)
                             Tree tree3 = tree1.Copy();
                             var edge1 = tree3.edges.ElementAt(rando.Next(tree3.edges.Count));
@@ -261,8 +246,8 @@ namespace GeneTree
                             if (tree3.root == edge1.Key)
                             {
                                 tree3.root = edge2.Key;
-                                tree3.edges.Remove(edge1.Key);
-                                tree3.edges.Add(edge2.Key, new List<TreeNode>(edge2.Value));
+                                tree3.RemoveNode(edge1.Key);
+                                tree3.AddNodeWithChildrenFromTree(tree2, edge2.Key);
                             }
                             else
                             {
@@ -279,14 +264,17 @@ namespace GeneTree
                                         //bring the new node's edge into this tree
                                         //remove the old node from the edges
                                         tree3.edges[parent1][k] = edge2.Key;
-                                        tree3.edges.Remove(edge1.Key);
-                                        tree3.edges.Add(edge2.Key, new List<TreeNode>(edge2.Value));
+                                        tree3.RemoveNode(edge1.Key);
+                                        tree3.AddNodeWithChildrenFromTree(tree2, edge2.Key);
+
+                                        //TODO, how does this step really work if the child nodes are not brought over?
 
                                         break;
                                     }
                                 }
                             }
 
+                            tree2.TraverseData(dataPointMgr.dataPoints[0]);
                             newCreations.Add(tree2);
                         }
 
@@ -329,11 +317,12 @@ namespace GeneTree
                                 if (tree2.edges[parent2][k] == edge2.Key)
                                 {
                                     tree2.edges[parent2][k] = edge2.Value[0];
-                                    tree2.edges.Remove(edge2.Key);
+                                    tree2.RemoveNode(edge2.Key);
                                     break;
                                 }
                             }
 
+                            tree2.TraverseData(dataPointMgr.dataPoints[0]);
                             newCreations.Add(tree2);
                         }
 
@@ -353,8 +342,8 @@ namespace GeneTree
                         //create a new node with random param and value
                         var nodeNew = new TreeNode();
                         var test = new TreeTest();
-                        test.param = rando.Next(ranges.Count);
-                        test.valTest = rando.NextDouble() * (ranges[test.param][1] - ranges[test.param][0]) + ranges[test.param][0];
+                        test.param = rando.Next(dataPointMgr.ranges.Count);
+                        test.valTest = rando.NextDouble() * (dataPointMgr.ranges[test.param][1] - dataPointMgr.ranges[test.param][0]) + dataPointMgr.ranges[test.param][0];
                         test.isLessThanEqualTest = rando.NextDouble() > 0.5;
 
                         nodeNew.Test = test;
@@ -385,19 +374,27 @@ namespace GeneTree
                             }
                         }
 
+                        tree2.TraverseData(dataPointMgr.dataPoints[0]);
                         newCreations.Add(tree2);
                     }
                     else
                     {
                         //all random new
                         var tree2 = CreateRandomTree();
+                        tree2.TraverseData(dataPointMgr.dataPoints[0]);
                         newCreations.Add(tree2);
                     }
                 }
 
                 starter.AddRange(newCreations);
                 starter = ProcessPoolOfTrees(starter, generationNumber);
+
+                //TODO evaluate the trees somehow to determine the similarity and overlap of them all
             }
+
+            //TODO add a step at the end to verify the results with a hold out data set
+
+            //TODO add the ability to use the best tree for prediction and generate a results file w/ the predictions
         }
 
         private void btnLoadSecondData_Click(object sender, EventArgs e)
@@ -405,161 +402,12 @@ namespace GeneTree
             string path = "data/balance-scale/data.csv";
             LoadDataFile(path);
         }
-    }
 
-    //TODO all of these classes need to go into their own files
-
-    public class DataPoint
-    {
-        //TODO DataPoint needs to be upgraded to handle various data types instead of double
-
-        public double[] Data;
-        public string Classification;
-    }
-
-    public class TreeTest
-    {
-        public int param; //data array index to test
-        public double valTest; // value to test, low
-        public bool isLessThanEqualTest; //returns true if
-
-        //TODO add the ability to test against another value in the data, will work against the balance scale data
-
-        public bool isTrueTest(DataPoint point)
+        private void btnDataBig_Click(object sender, EventArgs e)
         {
-            if (isLessThanEqualTest)
-            {
-                return point.Data[param] <= valTest;
-            }
-            else
-            {
-                return point.Data[param] > valTest;
-            }
-        }
-
-        public override string ToString()
-        {
-            return string.Format("param {0}, LTE test {1}, val {2}", param, isLessThanEqualTest, valTest);
+            string path = "data/otto/otto.csv";
+            LoadDataFile(path);
         }
     }
 
-    public class Tree
-    {
-        public TreeNode root;
-        public Dictionary<TreeNode, List<TreeNode>> edges = new Dictionary<TreeNode, List<TreeNode>>();
-
-        public Tree Copy()
-        {
-            Tree copy = new Tree();
-            copy.root = this.root;
-            copy.edges = new Dictionary<TreeNode, List<TreeNode>>();
-
-            foreach (var item in this.edges)
-            {
-                copy.edges[item.Key] = new List<TreeNode>(item.Value);
-            }
-
-            return copy;
-        }
-
-        public bool TraverseData(DataPoint point)
-        {
-            return TraverseData(root, point);
-        }
-
-        public TreeNode FindParentNode(TreeNode child)
-        {
-            return FindParentNode(child, root);
-        }
-        public TreeNode FindParentNode(TreeNode child, TreeNode possibleParent)
-        {
-            //stop if child is in list of edges
-            if (possibleParent.IsTerminal)
-            {
-                return null;
-            }
-
-            if (edges[possibleParent].Contains(child))
-            {
-                return possibleParent;
-            }
-            else
-            {
-                foreach (var nextPossibleParent in edges[possibleParent])
-                {
-                    var temp = FindParentNode(child, nextPossibleParent);
-
-                    if (temp != null)
-                    {
-                        return temp;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public bool TraverseData(TreeNode node, DataPoint point)
-        {
-            //start at root, test if correct
-            if (node.IsTerminal)
-            {
-                return node.Classification == point.Classification;
-            }
-            else
-            {
-                //do the test and then traverse
-                if (node.Test.isTrueTest(point))
-                {
-                    //0 will be yes
-                    return TraverseData(edges[node][0], point);
-                }
-                else
-                {
-                    //1 will be no
-                    return TraverseData(edges[node][1], point);
-                }
-            }
-        }
-
-        public override string ToString()
-        {
-            StringBuilder sb = new StringBuilder();
-
-            Stack<TreeNode> nodes = new Stack<TreeNode>();
-            nodes.Push(root);
-
-            while (nodes.Count > 0)
-            {
-                var node = nodes.Pop();
-                sb.AppendLine(node.ToString());
-
-                if (!node.IsTerminal)
-                {
-                    edges[node].ForEach(x => nodes.Push(x));
-                }
-            }
-
-            return sb.ToString();
-        }
-    }
-
-    public class TreeNode
-    {
-        public TreeTest Test;
-        public bool IsTerminal;
-        public string Classification;
-
-        public override string ToString()
-        {
-            if (IsTerminal)
-            {
-                return string.Format("terminal to {0}", Classification.ToString());
-            }
-            else
-            {
-                return Test.ToString();
-            }
-        }
-    }
 }
