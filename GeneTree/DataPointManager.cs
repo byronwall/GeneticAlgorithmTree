@@ -11,6 +11,7 @@ namespace GeneTree
         public string[] classes;
         public Dictionary<int, List<double>> ranges = new Dictionary<int, List<double>>();
         public List<DataPoint> dataPoints = new List<DataPoint>();
+		public List<string> headers = new List<string>();
         public int paramCount;
 
         public void DetermineClasses()
@@ -30,6 +31,10 @@ namespace GeneTree
 
                 ranges.Add(i, new List<double> { min, max });
             }
+        }
+        
+        public void SetHeaders(string[] headers_from_csv){
+			headers.AddRange(headers_from_csv);
         }
     }
 }
