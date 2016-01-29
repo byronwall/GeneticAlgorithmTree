@@ -31,8 +31,6 @@ namespace GeneTree
 				{
 					isClassification = true;
 				}
-			
-				//TODO allow the assignment of classification columns to be user supplied
 				//TODO need to be able to deal with non-double data, load data into raw_data as string and then process, issue #7
 				
 				switch (types.ElementAt(i))

@@ -29,7 +29,6 @@ namespace GeneTree
 
 		private void btnLoadData_Click(object sender, EventArgs e)
 		{
-			//TODO allow the program to accept aribitrary data location
 			string path = "data/iris/iris.data";
 			LoadDataFile(path);
 		}
@@ -51,7 +50,7 @@ namespace GeneTree
 			var test = new TreeTest();
 			test.param = rando.Next(dataPointMgr.paramCount);
 			
-			//TODO this needs to handle arbitrary data types.  equality only for string test
+			//TODO this needs to handle arbitrary data types.  equality only for string test.  Ideally the test will supplied by the data type and not guessed here.
 			test.valTest = rando.NextDouble() * (dataPointMgr.ranges[test.param][1] - dataPointMgr.ranges[test.param][0]) + dataPointMgr.ranges[test.param][0];
 			test.isLessThanEqualTest = rando.NextDouble() > 0.5;
 
