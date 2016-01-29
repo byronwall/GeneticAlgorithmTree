@@ -36,43 +36,7 @@ namespace GeneTree
 
 		private void LoadDataFile(string path)
 		{
-			//TODO this method should split the data into test/train in order to better evaluate the tree
-			var reader = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-
-			bool firstLine = true;
-			
-			//parse the CSV data and create data points
-			while (!reader.EndOfStream)
-			{
-				var line = reader.ReadLine();
-
-				if (line == string.Empty)
-				{
-					continue;
-				}
-
-				//this part is hard coded to IRIS data file
-				var values = line.Split(',');
-				
-				//TODO fully process the header row, issue #6
-				if(firstLine){
-					dataPointMgr.SetHeaders(values);
-					firstLine = false;
-					continue;
-				}				
-				
-				//TODO need to be able to deal with non-double data, load data into raw_data as string and then process, issue #7				
-				var data = values.Take(values.Length - 1).Select(x => double.Parse(x)).ToArray();
-				
-				//TODO allow the assignment of classification columns to be user supplied
-				dataPointMgr.dataPoints.Add(new DataPoint() { Data = data, Classification = values[values.Length - 1] });
-			}
-
-			//create classes and ranges
-			dataPointMgr.DetermineClasses();
-
-			//get min/max ranges for the data
-			dataPointMgr.DetermineRanges();
+			dataPointMgr.LoadFromCsv(path);
 		}
 
 		Random rando = new Random();
@@ -86,6 +50,8 @@ namespace GeneTree
 			var root = new TreeNode();
 			var test = new TreeTest();
 			test.param = rando.Next(dataPointMgr.paramCount);
+			
+			//TODO this needs to handle arbitrary data types.  equality only for string test
 			test.valTest = rando.NextDouble() * (dataPointMgr.ranges[test.param][1] - dataPointMgr.ranges[test.param][0]) + dataPointMgr.ranges[test.param][0];
 			test.isLessThanEqualTest = rando.NextDouble() > 0.5;
 

@@ -127,7 +127,7 @@ namespace GeneTree
             //start at root, test if correct
             if (node.IsTerminal)
             {
-                return node.Classification == point.Classification;
+                return node.Classification == point._classification._value;
             }
             else
             {
@@ -159,7 +159,7 @@ namespace GeneTree
 
                 if (!node.IsTerminal)
                 {
-                    edges[node].ForEach(x => nodes.Push(x));
+					edges[node].ForEach(nodes.Push);
                 }
             }
 

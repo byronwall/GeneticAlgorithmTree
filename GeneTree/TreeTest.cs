@@ -9,20 +9,21 @@ namespace GeneTree
     public class TreeTest
     {
         public int param; //data array index to test
-        public double valTest; // value to test, low
+        public object valTest; // value to test, low
         public bool isLessThanEqualTest; //returns true if
 
         //TODO add the ability to test against another value in the data, will work against the balance scale data
 
         public bool isTrueTest(DataPoint point)
         {
+        	var lessThanTest = point._data[param].IsLessThanOrEqualTo(valTest);
             if (isLessThanEqualTest)
-            {
-                return point.Data[param] <= valTest;
+            {				
+				return lessThanTest;
             }
             else
             {
-                return point.Data[param] > valTest;
+				return !lessThanTest;
             }
         }
 

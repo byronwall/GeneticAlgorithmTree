@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="DataPoint.cs" />
     <Compile Include="DataPointManager.cs" />
+    <Compile Include="IDataValue.cs" />
     <Compile Include="Tree.cs" />
     <Compile Include="TreeNode.cs" />
     <Compile Include="Form1.cs">
