@@ -25,8 +25,6 @@ namespace GeneTree
 			Trace.AutoFlush = true;
 		}
 
-
-
 		private void btnLoadData_Click(object sender, EventArgs e)
 		{
 			string path = "data/iris/iris.data";
@@ -52,7 +50,7 @@ namespace GeneTree
 			
 			DataColumn column = dataPointMgr._columns[test.param];
 			
-			//TODO this needs to handle arbitrary data types.  equality only for string test.  Ideally the test will supplied by the data type and not guessed here.
+			//TODO this should get the value directly from teh column and not do math here
 			test.valTest = rando.NextDouble() * (column._max - column._min) + column._min;
 			
 			//just pull a random value from the data
@@ -94,7 +92,7 @@ namespace GeneTree
 					else
 					{
 						var testYes = new TreeTest();
-						testYes.param = rando.Next(dataPointMgr.paramCount);
+						testYes.param = rando.Next(dataPointMgr.DataColumnCount);
 						testYes.valTest = rando.NextDouble() * (column._max - column._min) + column._min;
 						testYes.isLessThanEqualTest = rando.NextDouble() > 0.5;
 
@@ -117,8 +115,6 @@ namespace GeneTree
 
 		private void btnPoolRando_Click(object sender, EventArgs e)
 		{
-			//CreateRandomPoolOfTrees(20);
-
 			ProcessTheNextGeneration();
 
 			MessageBox.Show("the test is completed");
@@ -178,9 +174,10 @@ namespace GeneTree
 			//TODO improve the selection here to not just take the top half, maybe iterate them all and select based on the score
 			return results.OrderByDescending(x => x.Item1).Select(x => x.Item2).Take(trees.Count() / 2).ToList();
 		}
-		//TODO move the processing code into a GeneticOperations class to handle it all
+		
 		private void ProcessTheNextGeneration()
 		{
+			//TODO move the processing code into a GeneticOperations class to handle it all
 			int populationSize = 200;
 
 			//start with a list of trees and trim it down

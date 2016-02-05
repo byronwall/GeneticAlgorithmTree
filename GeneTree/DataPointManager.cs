@@ -12,20 +12,20 @@ namespace GeneTree
 		public double[] classes;
 		
 		public List<DataPoint> dataPoints = new List<DataPoint>();
-		
-		public int paramCount;
-		
 		public List<DataColumn> _columns = new List<DataColumn>();
 		public DataColumn _classifications;
 		
-		public int DataColumnCount{
-			get{
+		public int DataColumnCount
+		{
+			get
+			{
 				return _columns.Count - 1;
 			}
 		}
 
 		public void DetermineClasses()
 		{
+			//TODO get rid of this method.  it does not seem necessary
 			classes = dataPoints.GroupBy(x => x._classification._value).Select(x => x.Key).ToArray();
 		}
         
@@ -37,25 +37,23 @@ namespace GeneTree
 			
 			foreach (var header in headers_from_csv)
 			{
+				//TODO pull this info from a config file or the GUI, maybe a first step to load headers and confirm data type
 				DataColumn col = new DataColumn();
 				col._header = header;
-				col._type = DataValueTypes.NUMBER;				
+				col._type = DataColumn.DataValueTypes.CATEGORY;		
+				col._codebook = new CodeBook();
 				
 				//HACK: figure out a better way to identify the last item
 				if (header == headers_from_csv.Last())
 				{
-					col._type = DataValueTypes.CATEGORY;
+					col._type = DataColumn.DataValueTypes.CATEGORY;
 					col._codebook = new CodeBook();
 					
 					_classifications = col;
-				}
+				}				
 				
-				
-				_columns.Add(col);
-				
+				_columns.Add(col);				
 			}
-			
-			//at this point, the headers are set up and data is ready to be processed... send it back to the loader
 		}
         
 		public void LoadFromCsv(string path)
@@ -91,10 +89,6 @@ namespace GeneTree
 			
 			//create classes and ranges
 			DetermineClasses();
-
-			//get min/max ranges for the data
-		}
-        
-        
+		}        
 	}
 }
