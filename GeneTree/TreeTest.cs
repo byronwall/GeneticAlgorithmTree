@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,14 +10,14 @@ namespace GeneTree
     public class TreeTest
     {
         public int param; //data array index to test
-        public object valTest; // value to test, low
+        public double valTest; // value to test, low
         public bool isLessThanEqualTest; //returns true if
 
         //TODO add the ability to test against another value in the data, will work against the balance scale data
 
         public bool isTrueTest(DataPoint point)
         {
-        	var lessThanTest = point._data[param].IsLessThanOrEqualTo(valTest);
+        	var lessThanTest = point._data[param]._value <= valTest;
             if (isLessThanEqualTest)
             {				
 				return lessThanTest;

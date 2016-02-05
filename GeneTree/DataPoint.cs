@@ -12,9 +12,9 @@ namespace GeneTree
 
 		public IEnumerable<string> _rawData;
 		public List<DataValue> _data;
-		public DataValue<string> _classification;
+		public DataValue _classification;
 		
-		public static DataPoint FromString(IEnumerable<string> raw_data, IEnumerable<DataValueTypes> types)
+		public static DataPoint FromString(IEnumerable<string> raw_data, List<DataColumn> columns)
 		{			
 			DataPoint dp = new DataPoint();
 			
@@ -33,11 +33,12 @@ namespace GeneTree
 				}
 				//TODO need to be able to deal with non-double data, load data into raw_data as string and then process, issue #7
 				
-				switch (types.ElementAt(i))
-				{
-					case DataValueTypes.DOUBLE:
-						var dv = new DataValue<double>();
-						dv._rawValue = value;
+				var dv = new DataValue();
+				dv._rawValue = value;
+				
+				switch (columns[i]._type)
+				{						
+					case DataValueTypes.NUMBER:					
 						
 						if (!double.TryParse(value, out dv._value))
 						{
@@ -46,29 +47,33 @@ namespace GeneTree
 						
 						if (isClassification)
 						{
-							throw new Exception("cannot have a non-string for teh classification");
-						}
-						dp._data.Add(dv);
-						
-						break;
-					case DataValueTypes.STRING:
-						var dv_str = new DataValue<string>();
-						dv_str._rawValue = value;					
-						dv_str._value = value;										
-						
-						if (!isClassification)
-						{
-							dp._data.Add(dv_str);
+							dp._classification = dv;
 						}
 						else
 						{
-							dp._classification = dv_str;
+							dp._data.Add(dv);
+						}
+						
+						break;
+					case DataValueTypes.CATEGORY:				
+						dv._value = columns[i]._codebook.GetOrAddValue(value);
+						//TODO, deal with codebook parts
+						
+						if (!isClassification)
+						{
+							dp._data.Add(dv);
+						}
+						else
+						{
+							dp._classification = dv;
 						}
 						
 						break;
 					default:
 						throw new ArgumentOutOfRangeException();
 				}
+				
+				columns[i]._values.Add(dv);
 			}
 			
 			return dp;

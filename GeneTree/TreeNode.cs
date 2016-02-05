@@ -15,7 +15,7 @@ namespace GeneTree
     {
         public TreeTest Test;
         public bool IsTerminal;
-        public string Classification;
+        public double Classification;
 
         public override string ToString()
         {

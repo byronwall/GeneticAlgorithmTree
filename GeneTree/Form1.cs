@@ -48,10 +48,17 @@ namespace GeneTree
 			var tree = new Tree();
 			var root = new TreeNode();
 			var test = new TreeTest();
-			test.param = rando.Next(dataPointMgr.paramCount);
+			test.param = rando.Next(dataPointMgr.DataColumnCount);
+			
+			DataColumn column = dataPointMgr._columns[test.param];
 			
 			//TODO this needs to handle arbitrary data types.  equality only for string test.  Ideally the test will supplied by the data type and not guessed here.
-			test.valTest = rando.NextDouble() * (dataPointMgr.ranges[test.param][1] - dataPointMgr.ranges[test.param][0]) + dataPointMgr.ranges[test.param][0];
+			test.valTest = rando.NextDouble() * (column._max - column._min) + column._min;
+			
+			//just pull a random value from the data
+			int val_index = rando.Next(dataPointMgr.dataPoints.Count);
+			test.valTest = dataPointMgr.dataPoints[val_index]._data[test.param]._value;
+			
 			test.isLessThanEqualTest = rando.NextDouble() > 0.5;
 
 			root.Test = test;
@@ -88,7 +95,7 @@ namespace GeneTree
 					{
 						var testYes = new TreeTest();
 						testYes.param = rando.Next(dataPointMgr.paramCount);
-						testYes.valTest = rando.NextDouble() * (dataPointMgr.ranges[testYes.param][1] - dataPointMgr.ranges[testYes.param][0]) + dataPointMgr.ranges[testYes.param][0];
+						testYes.valTest = rando.NextDouble() * (column._max - column._min) + column._min;
 						testYes.isLessThanEqualTest = rando.NextDouble() > 0.5;
 
 						nodeYes.Test = testYes;
@@ -321,8 +328,11 @@ namespace GeneTree
 						//create a new node with random param and value
 						var nodeNew = new TreeNode();
 						var test = new TreeTest();
-						test.param = rando.Next(dataPointMgr.ranges.Count);
-						test.valTest = rando.NextDouble() * (dataPointMgr.ranges[test.param][1] - dataPointMgr.ranges[test.param][0]) + dataPointMgr.ranges[test.param][0];
+						test.param = rando.Next(dataPointMgr.DataColumnCount);
+						
+						DataColumn col = dataPointMgr._columns[test.param];
+						
+						test.valTest = rando.NextDouble() * (col._max - col._min) + col._min;
 						test.isLessThanEqualTest = rando.NextDouble() > 0.5;
 
 						nodeNew.Test = test;

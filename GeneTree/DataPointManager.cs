@@ -9,45 +9,24 @@ namespace GeneTree
 {
 	class DataPointManager
 	{
-		public string[] classes;
-		public Dictionary<int, List<double>> ranges = new Dictionary<int, List<double>>();
+		public double[] classes;
+		
 		public List<DataPoint> dataPoints = new List<DataPoint>();
-		public List<string> headers = new List<string>();
+		
 		public int paramCount;
-        
-		public List<DataValueTypes> columnTypes = new List<DataValueTypes>();
+		
+		public List<DataColumn> _columns = new List<DataColumn>();
+		public DataColumn _classifications;
+		
+		public int DataColumnCount{
+			get{
+				return _columns.Count - 1;
+			}
+		}
 
 		public void DetermineClasses()
 		{
 			classes = dataPoints.GroupBy(x => x._classification._value).Select(x => x.Key).ToArray();
-		}
-
-		public void DetermineRanges()
-		{
-			int paramCount = dataPoints[0]._data.Count;
-			ranges.Clear();
-
-			
-			for (int i = 0; i < columnTypes.Count; i++)
-			{
-				var colType = columnTypes[i];
-				switch (colType)
-				{
-					case DataValueTypes.DOUBLE:
-						double max = dataPoints.Max(x => ((DataValue<double>)x._data[i])._value);
-						double min = dataPoints.Min(x => ((DataValue<double>)x._data[i])._value);
-						ranges.Add(i, new List<double>
-							{
-								min,
-								max
-							});
-						break;
-					case DataValueTypes.STRING:
-						break;
-					default:
-						throw new ArgumentOutOfRangeException();
-				}
-			}
 		}
         
 		public void SetHeaders(string str_headers)
@@ -55,12 +34,25 @@ namespace GeneTree
 			//TODO fully process the header row, issue #6
 			
 			var headers_from_csv = str_headers.Split(',');
-			headers.AddRange(headers_from_csv);
 			
-			//know how many headers, create the DataTypes			
-			for (int i = 0; i < str_headers.Count(); i++)
+			foreach (var header in headers_from_csv)
 			{
-				columnTypes.Add(DataValueTypes.STRING);
+				DataColumn col = new DataColumn();
+				col._header = header;
+				col._type = DataValueTypes.NUMBER;				
+				
+				//HACK: figure out a better way to identify the last item
+				if (header == headers_from_csv.Last())
+				{
+					col._type = DataValueTypes.CATEGORY;
+					col._codebook = new CodeBook();
+					
+					_classifications = col;
+				}
+				
+				
+				_columns.Add(col);
+				
 			}
 			
 			//at this point, the headers are set up and data is ready to be processed... send it back to the loader
@@ -88,15 +80,19 @@ namespace GeneTree
 				var values = line.Split(',');
 
 				//create data point from the string line
-				DataPoint dp = DataPoint.FromString(values, columnTypes);								
+				DataPoint dp = DataPoint.FromString(values, _columns);								
 				dataPoints.Add(dp);
 			}
 
+			foreach (var column in _columns)
+			{
+				column.ProcessRanges();
+			}
+			
 			//create classes and ranges
 			DetermineClasses();
 
 			//get min/max ranges for the data
-			DetermineRanges();
 		}
         
         

@@ -5,36 +5,82 @@ using System.Text;
 using System.Threading.Tasks;
 namespace GeneTree
 {
-	public interface IDataValue
-	{
-		bool IsLessThanOrEqualTo(object obj);
-	}
-	
-	public abstract class DataValue : IDataValue
-	{
-		//TODO get rid of this class and use only the interface.  Don't worry about duplication.
-		public abstract bool IsLessThanOrEqualTo(object obj);
-	}
-	
-	public class DataValue<T> : DataValue
+	public class DataValue
 	{
 		public bool _isMissing;
-		public T _value;
+		public double _value;
 		public string _rawValue;
-		
-		#region implemented abstract members of DataValue
-		public override bool IsLessThanOrEqualTo(object obj)
-		{
-			//TODO make this less awful.  Should be a separate class for each data type
-			return string.Compare(_value.ToString(), obj.ToString()) <= 0;
-		}
-		#endregion
+		public DataColumn _parent;
 	}
 	
 	public enum DataValueTypes
 	{
-		DOUBLE,
-		STRING
+		NUMBER,
+		CATEGORY
+	}
+	
+	public interface IDataColumn<T>
+	{
+		T GetPossibleValue();
+	}
+	public class DataColumn
+	{
+		public DataValueTypes _type;
+		public List<DataValue> _values = new List<DataValue>();
+		public string _header;
+		public CodeBook _codebook;
+		
+		public double _min = double.MaxValue;
+		public double _max = double.MinValue;
+		
+		public double GetTestValue()
+		{
+			return 0.0; //some value from the collection
+		}
+		
+		public void ProcessRanges()
+		{
+			_min = _values.Min(x => x._value);
+			_max = _values.Max(x => x._value);
+		}
+		
+	}
+	public class CodeBook
+	{
+		Dictionary<string, double> _mappings = new Dictionary<string, double>();
+		
+		public double GetMapping(string value)
+		{
+			return _mappings[value];
+		}
+		
+		public double GetOrAddValue(string rawValue)
+		{
+			if (!_mappings.ContainsKey(rawValue))
+			{
+				return AddToCodebook(rawValue);
+			}
+			
+			return _mappings[rawValue];
+		}
+		
+		private double AddToCodebook(string rawValue)
+		{
+			double value = _mappings.Count;
+			
+			_mappings.Add(rawValue, _mappings.Count);
+			
+			return value;
+		}
+		
+		public void SetMappings(IEnumerable<string> rawValues)
+		{
+			foreach (var value in rawValues.Distinct())
+			{
+				_mappings.Add(value, _mappings.Count);
+			}
+		}
+		
 	}
 }
 
