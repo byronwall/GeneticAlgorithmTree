@@ -35,7 +35,7 @@ namespace GeneTree
 				
 				switch (columns[i]._type)
 				{
-					//TODO abstract this code into multiple classes						
+				//TODO abstract this code into multiple classes						
 					case DataColumn.DataValueTypes.NUMBER:					
 						
 						if (!double.TryParse(value, out dv._value))
@@ -54,8 +54,8 @@ namespace GeneTree
 						
 						break;
 					case DataColumn.DataValueTypes.CATEGORY:				
+						//TODO add a check here for a missing value, String.empty
 						dv._value = columns[i]._codebook.GetOrAddValue(value);
-						//TODO, deal with codebook parts
 						
 						if (!isClassification)
 						{

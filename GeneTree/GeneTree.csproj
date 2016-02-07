@@ -49,6 +49,7 @@
     <Compile Include="DataPointManager.cs" />
     <Compile Include="DataValue.cs" />
     <Compile Include="DataColumn.cs" />
+    <Compile Include="GeneticAlgorithmManager.cs" />
     <Compile Include="Tree.cs" />
     <Compile Include="TreeNode.cs" />
     <Compile Include="Form1.cs">

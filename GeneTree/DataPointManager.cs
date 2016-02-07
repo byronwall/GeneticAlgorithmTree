@@ -30,27 +30,29 @@ namespace GeneTree
 		}
         
 		public void SetHeaders(string str_headers)
-		{
-			//TODO fully process the header row, issue #6
-			
+		{			
 			var headers_from_csv = str_headers.Split(',');
 			
 			foreach (var header in headers_from_csv)
 			{
-				//TODO pull this info from a config file or the GUI, maybe a first step to load headers and confirm data type
-				DataColumn col = new DataColumn();
-				col._header = header;
-				col._type = DataColumn.DataValueTypes.CATEGORY;		
-				col._codebook = new CodeBook();
-				
+				DataColumn col;		
+				//TODO pull this info from a config file or the GUI, maybe a first step to load headers and confirm data type						
+				//HACK: forces all to be category this way
 				//HACK: figure out a better way to identify the last item
-				if (header == headers_from_csv.Last())
+				if (true || header == headers_from_csv.Last())
 				{
+					col = new CategoryDataColumn();
 					col._type = DataColumn.DataValueTypes.CATEGORY;
 					col._codebook = new CodeBook();
 					
 					_classifications = col;
-				}				
+				}
+				else
+				{
+					col = new DoubleDataColumn();
+				}
+				
+				col._header = header;
 				
 				_columns.Add(col);				
 			}
@@ -89,6 +91,6 @@ namespace GeneTree
 			
 			//create classes and ranges
 			DetermineClasses();
-		}        
+		}
 	}
 }
