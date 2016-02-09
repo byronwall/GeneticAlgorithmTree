@@ -13,7 +13,7 @@ namespace GeneTree
 		
 		public List<DataPoint> dataPoints = new List<DataPoint>();
 		public List<DataColumn> _columns = new List<DataColumn>();
-		public DataColumn _classifications;
+		public DataPointConfiguration _config;
 		
 		public int DataColumnCount
 		{
@@ -21,6 +21,37 @@ namespace GeneTree
 			{
 				return _columns.Count - 1;
 			}
+		}
+		
+		/// <summary>
+		/// Loads the configuration file and sets up the columns based on it.
+		/// </summary>
+		/// <param name="config_path"></param>
+		public void SetConfiguration(string config_path)
+		{			
+			_config = DataPointConfiguration.LoadFromFile(config_path);
+
+			foreach (var column in _config._types)
+			{
+				//TODO get rid of this switch... push it into the data column as a static factory or such
+				DataColumn dc;
+				switch (column.Value)
+				{						
+					case DataColumn.DataValueTypes.NUMBER:
+						dc = new DoubleDataColumn();
+						break;
+					case DataColumn.DataValueTypes.CATEGORY:
+						dc = new CategoryDataColumn();
+						break;
+					default:
+						throw new ArgumentOutOfRangeException();
+				}				
+				
+				dc._header = column.Key;
+				
+				_columns.Add(dc);
+			}			
+			
 		}
 
 		public void DetermineClasses()
@@ -30,7 +61,13 @@ namespace GeneTree
 		}
         
 		public void SetHeaders(string str_headers)
-		{			
+		{
+			//TODO come up with a cleaner architecture than this trap (force default from outside)
+			if (_columns.Count > 0)
+			{
+				return;
+			}
+			
 			var headers_from_csv = str_headers.Split(',');
 			
 			foreach (var header in headers_from_csv)
@@ -44,8 +81,6 @@ namespace GeneTree
 					col = new CategoryDataColumn();
 					col._type = DataColumn.DataValueTypes.CATEGORY;
 					col._codebook = new CodeBook();
-					
-					_classifications = col;
 				}
 				else
 				{
@@ -77,7 +112,7 @@ namespace GeneTree
 					continue;
 				}
 				
-				var values = line.Split(',');
+				string[] values = line.Split(',');
 
 				//create data point from the string line
 				DataPoint dp = DataPoint.FromString(values, _columns);								
@@ -93,4 +128,5 @@ namespace GeneTree
 			DetermineClasses();
 		}
 	}
+	
 }

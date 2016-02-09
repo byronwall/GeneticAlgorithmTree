@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="CodeBook.cs" />
     <Compile Include="DataPoint.cs" />
+    <Compile Include="DataPointConfiguration.cs" />
     <Compile Include="DataPointManager.cs" />
     <Compile Include="DataValue.cs" />
     <Compile Include="DataColumn.cs" />
@@ -85,6 +86,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ProfilingSessions\Session20160208_212541.sdps" />
+    <Content Include="ProfilingSessions\Session20160208_213114.sdps" />
+    <Content Include="ProfilingSessions\Session20160208_213856.sdps" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

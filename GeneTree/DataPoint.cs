@@ -12,7 +12,7 @@ namespace GeneTree
 		public List<DataValue> _data;
 		public DataValue _classification;
 		
-		public static DataPoint FromString(IEnumerable<string> raw_data, List<DataColumn> columns)
+		public static DataPoint FromString(string[] raw_data, List<DataColumn> columns)
 		{			
 			DataPoint dp = new DataPoint();
 			
@@ -20,12 +20,12 @@ namespace GeneTree
 			dp._data = new List<DataValue>();
 			dp._rawData = raw_data;
 			
-			for (int i = 0; i < raw_data.Count(); i++)
+			for (int i = 0; i < raw_data.Length; i++)
 			{
-				var value = raw_data.ElementAt(i);
+				var value = raw_data[i];
 				
 				bool isClassification = false;
-				if (i == raw_data.Count() - 1)
+				if (i == raw_data.Length - 1)
 				{
 					isClassification = true;
 				}

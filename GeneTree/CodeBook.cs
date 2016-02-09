@@ -16,6 +16,7 @@ namespace GeneTree
 
 		public double GetOrAddValue(string rawValue)
 		{
+			//TODO improve speed of these steps.  might want to store raw and process codebook at end
 			if (!_mappings.ContainsKey(rawValue))
 			{
 				return AddToCodebook(rawValue);

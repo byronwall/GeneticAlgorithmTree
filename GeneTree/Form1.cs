@@ -25,42 +25,32 @@ namespace GeneTree
 
 			Trace.Listeners.Add(twtl);
 			Trace.AutoFlush = true;
-		}		
-
-		private void btnLoadData_Click(object sender, EventArgs e)
-		{
-			string path = "data/iris/iris.data";
-			ga_mgr.LoadDataFile(path);
-		}		
+		}
 
 		private void btnPoolRando_Click(object sender, EventArgs e)
 		{
 			ga_mgr.ProcessTheNextGeneration();
 
 			MessageBox.Show("the test is completed");
-		}		
-
-		private void btnLoadSecondData_Click(object sender, EventArgs e)
-		{
-			string path = "data/balance-scale/data.csv";
-			ga_mgr.LoadDataFile(path);
 		}
-
-		private void btnDataBig_Click(object sender, EventArgs e)
+		
+		DataPointConfiguration config;
+		
+		void Btn_configDefaultClick(object sender, EventArgs e)
 		{
-			string path = "data/otto/otto.csv";
-			ga_mgr.LoadDataFile(path);
-		}
-		void Btn_loadAnyFileClick(object sender, EventArgs e)
-		{
-			OpenFileDialog ofd = new OpenFileDialog();
+			//create default file based on data file
+			string data_path = txt_dataFile.Text;
 			
-			if (ofd.ShowDialog() == DialogResult.OK)
-			{
-				string path = ofd.FileName;
-				
-				ga_mgr.LoadDataFile(path);
-			}
+			//HACK this is just to allow copy/paste straight from Explorer
+			data_path = data_path.Replace("\"", string.Empty);
+			
+			config = DataPointConfiguration.CreateDefaultFromFile(data_path);			
+			config.SaveToFile(Path.GetDirectoryName(data_path) + @"\" + Path.GetFileNameWithoutExtension(data_path) + "_config.txt");
+		}
+		
+		void Btn_loadWithConfigClick(object sender, EventArgs e)
+		{
+			ga_mgr.LoadDataFile(txt_dataFile.Text, txt_configFile.Text);
 		}
 	}
 }

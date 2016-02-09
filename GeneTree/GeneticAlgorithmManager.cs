@@ -59,12 +59,13 @@ namespace GeneTree
 		public void ProcessTheNextGeneration()
 		{
 			//TODO move the processing code into a GeneticOperations class to handle it all
-			int populationSize = 200;
+			//TODO create a GeneticOptions and move this code over to it
+			int populationSize = 100;
 			//start with a list of trees and trim it down
 			var starter = CreateRandomPoolOfTrees(populationSize);
 			starter = ProcessPoolOfTrees(starter, 1);
 			//do the gene operations
-			int generations = 10;
+			int generations = 50;
 			List<Tree> newCreations = new List<Tree>();
 			//TODO add a step to check for "convergence" and stop iterating
 			for (int generationNumber = 0; generationNumber < generations; generationNumber++)
@@ -224,6 +225,11 @@ namespace GeneTree
 			//TODO add the ability to use the best tree for prediction and generate a results file w/ the predictions
 		}
 
+		public void LoadDataFile(string csv_path, string config_path)
+		{
+			dataPointMgr.SetConfiguration(config_path);
+			dataPointMgr.LoadFromCsv(csv_path);
+		}
 		public void LoadDataFile(string path)
 		{
 			dataPointMgr.LoadFromCsv(path);

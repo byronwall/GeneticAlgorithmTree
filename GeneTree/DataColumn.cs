@@ -39,6 +39,11 @@ namespace GeneTree
 		{
 			return rando.NextDouble() * (_max - _min) + _min;
 		}
+		
+		public DoubleDataColumn()
+		{
+			this._type = DataValueTypes.NUMBER;
+		}
 	}
 	public class CategoryDataColumn : DataColumn
 	{
@@ -49,6 +54,12 @@ namespace GeneTree
 			return _values[rando.Next(_values.Count)]._value;
 		}
 		#endregion
+		
+		public CategoryDataColumn()
+		{
+			this._codebook = new CodeBook();
+			this._type = DataValueTypes.CATEGORY;
+		}
 		
 	}
 	

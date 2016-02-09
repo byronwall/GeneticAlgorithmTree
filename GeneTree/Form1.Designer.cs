@@ -28,22 +28,14 @@
         /// </summary>
         private void InitializeComponent()
         {
-        	this.btnLoadData = new System.Windows.Forms.Button();
         	this.btnPoolRando = new System.Windows.Forms.Button();
-        	this.btnLoadSecondData = new System.Windows.Forms.Button();
-        	this.btnDataBig = new System.Windows.Forms.Button();
-        	this.btn_loadAnyFile = new System.Windows.Forms.Button();
+        	this.txt_dataFile = new System.Windows.Forms.TextBox();
+        	this.label1 = new System.Windows.Forms.Label();
+        	this.label2 = new System.Windows.Forms.Label();
+        	this.txt_configFile = new System.Windows.Forms.TextBox();
+        	this.btn_configDefault = new System.Windows.Forms.Button();
+        	this.btn_loadWithConfig = new System.Windows.Forms.Button();
         	this.SuspendLayout();
-        	// 
-        	// btnLoadData
-        	// 
-        	this.btnLoadData.Location = new System.Drawing.Point(46, 25);
-        	this.btnLoadData.Name = "btnLoadData";
-        	this.btnLoadData.Size = new System.Drawing.Size(100, 56);
-        	this.btnLoadData.TabIndex = 0;
-        	this.btnLoadData.Text = "load iris data";
-        	this.btnLoadData.UseVisualStyleBackColor = true;
-        	this.btnLoadData.Click += new System.EventHandler(this.btnLoadData_Click);
         	// 
         	// btnPoolRando
         	// 
@@ -55,59 +47,86 @@
         	this.btnPoolRando.UseVisualStyleBackColor = true;
         	this.btnPoolRando.Click += new System.EventHandler(this.btnPoolRando_Click);
         	// 
-        	// btnLoadSecondData
+        	// txt_dataFile
         	// 
-        	this.btnLoadSecondData.Location = new System.Drawing.Point(149, 25);
-        	this.btnLoadSecondData.Name = "btnLoadSecondData";
-        	this.btnLoadSecondData.Size = new System.Drawing.Size(100, 56);
-        	this.btnLoadSecondData.TabIndex = 0;
-        	this.btnLoadSecondData.Text = "load second data";
-        	this.btnLoadSecondData.UseVisualStyleBackColor = true;
-        	this.btnLoadSecondData.Click += new System.EventHandler(this.btnLoadSecondData_Click);
+        	this.txt_dataFile.Location = new System.Drawing.Point(132, 173);
+        	this.txt_dataFile.Name = "txt_dataFile";
+        	this.txt_dataFile.Size = new System.Drawing.Size(434, 20);
+        	this.txt_dataFile.TabIndex = 2;
+        	this.txt_dataFile.Text = "C:\\projects\\gene-tree\\GeneTree\\bin\\Debug\\data\\prudential\\train.csv";
         	// 
-        	// btnDataBig
+        	// label1
         	// 
-        	this.btnDataBig.Location = new System.Drawing.Point(255, 25);
-        	this.btnDataBig.Name = "btnDataBig";
-        	this.btnDataBig.Size = new System.Drawing.Size(100, 56);
-        	this.btnDataBig.TabIndex = 0;
-        	this.btnDataBig.Text = "load BIG!!data";
-        	this.btnDataBig.UseVisualStyleBackColor = true;
-        	this.btnDataBig.Click += new System.EventHandler(this.btnDataBig_Click);
+        	this.label1.Location = new System.Drawing.Point(46, 176);
+        	this.label1.Name = "label1";
+        	this.label1.Size = new System.Drawing.Size(73, 23);
+        	this.label1.TabIndex = 3;
+        	this.label1.Text = "data file";
         	// 
-        	// btn_loadAnyFile
+        	// label2
         	// 
-        	this.btn_loadAnyFile.Location = new System.Drawing.Point(419, 25);
-        	this.btn_loadAnyFile.Name = "btn_loadAnyFile";
-        	this.btn_loadAnyFile.Size = new System.Drawing.Size(100, 56);
-        	this.btn_loadAnyFile.TabIndex = 0;
-        	this.btn_loadAnyFile.Text = "load data file";
-        	this.btn_loadAnyFile.UseVisualStyleBackColor = true;
-        	this.btn_loadAnyFile.Click += new System.EventHandler(this.Btn_loadAnyFileClick);
+        	this.label2.Location = new System.Drawing.Point(46, 237);
+        	this.label2.Name = "label2";
+        	this.label2.Size = new System.Drawing.Size(73, 23);
+        	this.label2.TabIndex = 5;
+        	this.label2.Text = "config file";
+        	// 
+        	// txt_configFile
+        	// 
+        	this.txt_configFile.Location = new System.Drawing.Point(132, 234);
+        	this.txt_configFile.Name = "txt_configFile";
+        	this.txt_configFile.Size = new System.Drawing.Size(434, 20);
+        	this.txt_configFile.TabIndex = 4;
+        	this.txt_configFile.Text = "C:\\projects\\gene-tree\\GeneTree\\bin\\Debug\\data\\prudential\\train_config.txt";
+        	// 
+        	// btn_configDefault
+        	// 
+        	this.btn_configDefault.Location = new System.Drawing.Point(132, 205);
+        	this.btn_configDefault.Name = "btn_configDefault";
+        	this.btn_configDefault.Size = new System.Drawing.Size(117, 23);
+        	this.btn_configDefault.TabIndex = 6;
+        	this.btn_configDefault.Text = "create default config";
+        	this.btn_configDefault.UseVisualStyleBackColor = true;
+        	this.btn_configDefault.Click += new System.EventHandler(this.Btn_configDefaultClick);
+        	// 
+        	// btn_loadWithConfig
+        	// 
+        	this.btn_loadWithConfig.Location = new System.Drawing.Point(132, 260);
+        	this.btn_loadWithConfig.Name = "btn_loadWithConfig";
+        	this.btn_loadWithConfig.Size = new System.Drawing.Size(117, 23);
+        	this.btn_loadWithConfig.TabIndex = 7;
+        	this.btn_loadWithConfig.Text = "load based on config";
+        	this.btn_loadWithConfig.UseVisualStyleBackColor = true;
+        	this.btn_loadWithConfig.Click += new System.EventHandler(this.Btn_loadWithConfigClick);
         	// 
         	// Form1
         	// 
         	this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
         	this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        	this.ClientSize = new System.Drawing.Size(621, 174);
+        	this.ClientSize = new System.Drawing.Size(621, 421);
+        	this.Controls.Add(this.btn_loadWithConfig);
+        	this.Controls.Add(this.btn_configDefault);
+        	this.Controls.Add(this.label2);
+        	this.Controls.Add(this.txt_configFile);
+        	this.Controls.Add(this.label1);
+        	this.Controls.Add(this.txt_dataFile);
         	this.Controls.Add(this.btnPoolRando);
-        	this.Controls.Add(this.btn_loadAnyFile);
-        	this.Controls.Add(this.btnDataBig);
-        	this.Controls.Add(this.btnLoadSecondData);
-        	this.Controls.Add(this.btnLoadData);
         	this.Name = "Form1";
         	this.Text = "GeneTree";
         	this.ResumeLayout(false);
+        	this.PerformLayout();
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Button btnLoadData;
         private System.Windows.Forms.Button btnPoolRando;
-        private System.Windows.Forms.Button btnLoadSecondData;
-        private System.Windows.Forms.Button btnDataBig;
-        private System.Windows.Forms.Button btn_loadAnyFile;
+        private System.Windows.Forms.TextBox txt_dataFile;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox txt_configFile;
+        private System.Windows.Forms.Button btn_configDefault;
+        private System.Windows.Forms.Button btn_loadWithConfig;
     }
 }
 
