@@ -25,10 +25,12 @@ namespace GeneTree
 			return results;
 		}
 
-		private List<Tree> ProcessPoolOfTrees(IEnumerable<Tree> trees, int generationNumber)
+		private List<Tree> ProcessPoolOfTrees(IEnumerable<Tree> trees)
 		{
 			//create a number of random trees and report results from all of them
-			List<Tuple<double, Tree>> results = new List<Tuple<double, Tree>>();
+			
+			List<Tree> keeps = new List<Tree>();
+			
 			Trace.WriteLine("doing the eval: ratio");
 			foreach (var tree in trees)
 			{
@@ -43,33 +45,51 @@ namespace GeneTree
 				}
 				double ratio = 1.0 * correct / dataPointMgr.dataPoints.Count;
 				//report accuracy
-				//Trace.WriteLine(String.Format("{0} of {1} = {2}", correct, dataPoints.Count, ratio));
+				
 				//TODO improve the hueristic for evaluation
 				//TODO consider splitting this to consider tree size later in the game
-				double score = (generationNumber > 25) ? Math.Pow(ratio, 4) / Math.Log10(tree.edges.Count + 1) : Math.Pow(ratio, 4) / Math.Log10(2);
+				double score = Math.Pow(ratio, 2);
 				//score = ratio;
-				results.Add(new Tuple<double, Tree>(score, tree));
+				
+				//TODO improve override for non improving score
+				if (score > tree._prevScore || rando.NextDouble() > 0.9)
+				{				
+					//only add the new tree to the results if the score improved
+					keeps.Add(tree);
+				}
+				
+				tree._prevScore = score;
 			}
-			Trace.WriteLine(String.Join("\r\n", results.Select(x => x.Item1).OrderByDescending(x => x).Take(Math.Min(trees.Count() / 2, 10))));
-			Trace.WriteLine(results.OrderByDescending(x => x.Item1).Select(x => x.Item2).First());
+			
 			//TODO improve the selection here to not just take the top half, maybe iterate them all and select based on the score
-			return results.OrderByDescending(x => x.Item1).Select(x => x.Item2).Take(trees.Count() / 2).ToList();
+			return keeps;
 		}
 
+		//TODO create a GeneticOptions and move these options over to it
+		int populationSize = 500;
+		int generations = 100;
+		int max_node_count_for_new_tree = 12;
+			
 		public void ProcessTheNextGeneration()
 		{
-			//TODO move the processing code into a GeneticOperations class to handle it all
-			//TODO create a GeneticOptions and move this code over to it
-			int populationSize = 100;
+			//TODO move the processing code into a GeneticOperations class to handle it all		
+			
 			//start with a list of trees and trim it down
 			var starter = CreateRandomPoolOfTrees(populationSize);
-			starter = ProcessPoolOfTrees(starter, 1);
+			starter = ProcessPoolOfTrees(starter);
 			//do the gene operations
-			int generations = 50;
+			
 			List<Tree> newCreations = new List<Tree>();
 			//TODO add a step to check for "convergence" and stop iterating
 			for (int generationNumber = 0; generationNumber < generations; generationNumber++)
 			{
+				//thin down the herd and take pop size or total
+				starter = starter.OrderByDescending(c => c._prevScore).Take(Math.Min(populationSize, starter.Count)).ToList();
+				
+				//output some info on best
+				Trace.WriteLine(string.Join("\r\n", starter.Take(10).Select(c => c._prevScore.ToString())));
+				Trace.WriteLine(starter.First());
+				
 				Trace.WriteLine("generation: " + generationNumber);
 				for (int populationNumber = 0; populationNumber < populationSize; populationNumber++)
 				{
@@ -79,146 +99,74 @@ namespace GeneTree
 					if (tester < 0.4)
 					{
 						//node swap
-						//TODO, this needs to swap entire chunks of trees -or- create a new method that does that
-						//pick a tree
-						//pick a node in that tree
-						Tree tree1 = starter[rando.Next(starter.Count())];
-						//pick another tree
-						//pick a node in that tree
+						
+						Tree tree1 = starter[rando.Next(starter.Count())];						
 						Tree tree2 = starter[rando.Next(starter.Count())];
-						var edge2 = tree2.edges.ElementAt(rando.Next(tree2.edges.Count));
-						//TODO: clean up this trap for a node that already exists in the tree
-						if (tree1.ContainsNodeOrChildren(tree2, edge2.Key))
+						
+						Tree tree1_copy = tree1.Copy();
+						Tree tree2_copy = tree2.Copy();
+							
+						TreeNode node1 = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
+						TreeNode node2 = tree2_copy._nodes[rando.Next(tree2_copy._nodes.Count)];
+						
+						TreeNode.SwapNodesInTrees(node1, node2);
+						
+						//stick both trees into the next gen
+						if (tree1_copy._nodes.Count > 0)
 						{
+							newCreations.Add(tree1_copy);
 						}
-						else
+						if (tree2_copy._nodes.Count > 0)
 						{
-							//create a new tree which is a copy of node 1's tree (or randomly pick which one)
-							Tree tree3 = tree1.Copy();
-							var edge1 = tree3.edges.ElementAt(rando.Next(tree3.edges.Count));
-							if (tree3.root == edge1.Key)
-							{
-								tree3.root = edge2.Key;
-								tree3.RemoveNode(edge1.Key);
-								tree3.AddNodeWithChildrenFromTree(tree2, edge2.Key);
-							}
-							else
-							{
-								//find the parent of node 1 in the new tree
-								var parent1 = tree3.FindParentNode(edge1.Key);
-								//change the edge for the parent to point to node 2 instead of node 1
-								for (int k = 0; k < tree3.edges[parent1].Count; k++)
-								{
-									if (tree3.edges[parent1][k] == edge1.Key)
-									{
-										//swap the parent to the new node
-										//bring the new node's edge into this tree
-										//remove the old node from the edges
-										tree3.edges[parent1][k] = edge2.Key;
-										tree3.RemoveNode(edge1.Key);
-										tree3.AddNodeWithChildrenFromTree(tree2, edge2.Key);
-										//TODO, how does this step really work if the child nodes are not brought over?
-										break;
-									}
-								}
-							}
-							tree2.TraverseData(dataPointMgr.dataPoints[0]);
-							newCreations.Add(tree2);
+							newCreations.Add(tree2_copy);
 						}
-						//TODO: consider a check to prevent the same node from being added more than once
-					}
-					//TODO remove this bypass on node deletion, the problem seems to be related to deleting terminal nodes?
-					else if (false && tester < 0.35)
+					}					
+					/*else if (false && tester < 0.35)
 					{
-						//node deletion
-						//pick a tree
-						Tree tree1 = starter[rando.Next(starter.Count())];
-						//TODO: clean up this trap for a root only tree
-						if (tree1.edges.Count == 1)
-						{
-						}
-						else
-						{
-							//make a copy of that tree
-							Tree tree2 = tree1.Copy();
-							//pick a node in that copy
-							KeyValuePair<TreeNode, List<TreeNode>> edge2;
-							do
-							{
-								edge2 = tree2.edges.ElementAt(rando.Next(tree2.edges.Count));
-							}
-							while (tree2.root == edge2.Key);
-							//find the parent of that node
-							var parent2 = tree2.FindParentNode(edge2.Key);
-							//edit the edge to point to one of the children of chosen node
-							for (int k = 0; k < tree2.edges[parent2].Count; k++)
-							{
-								if (tree2.edges[parent2][k] == edge2.Key)
-								{
-									tree2.edges[parent2][k] = edge2.Value[0];
-									tree2.RemoveNode(edge2.Key);
-									break;
-								}
-							}
-							tree2.TraverseData(dataPointMgr.dataPoints[0]);
-							newCreations.Add(tree2);
-						}
-					}
+						//TODO implement deletion or some sort of trimming operation, deleting nodes may not be best w/ terminal nodes
+						//node deletion, not implemented for now				
+						
+					}*/
 					else if (tester < 0.8)
 					{
 						//node parameter/value change
-						//pick a tree
+						
 						Tree tree1 = starter[rando.Next(starter.Count())];
-						//make a copy of that tree
-						Tree tree2 = tree1.Copy();
-						//pick a node in that copy
-						var edge2 = tree2.edges.ElementAt(rando.Next(tree2.edges.Count));
-						//TODO turn this into a general helper method to create a new random node
-						//create a new node with random param and value
-						var nodeNew = new TreeNode();
-						var test = new TreeTest();
-						test.param = rando.Next(dataPointMgr.DataColumnCount);
-						DataColumn col = dataPointMgr._columns[test.param];
-						test.valTest = col.GetTestValue(rando);
-						test.isLessThanEqualTest = rando.NextDouble() > 0.5;
-						nodeNew.Test = test;
-						if (tree2.root == edge2.Key)
+						Tree tree1_copy = tree1.Copy();						
+						
+						TreeNode node1_copy = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
+						
+						//TODO split out changing the parameter and value
+						//TODO allow for the value to be modifying (add/subtract/etc. to make smaller changes)
+						
+						
+						if (node1_copy.IsTerminal)
 						{
-							tree2.root = nodeNew;
-							tree2.edges.Add(nodeNew, new List<TreeNode>(tree2.edges[edge2.Key]));
-							tree2.edges.Remove(edge2.Key);
+							node1_copy.Classification = dataPointMgr.classes[rando.Next(dataPointMgr.classes.Length)];
 						}
 						else
 						{
-							//find the parent of that node
-							var parent2 = tree2.FindParentNode(edge2.Key);
-							//edit the edge to point to one of the children of chosen node
-							for (int k = 0; k < tree2.edges[parent2].Count; k++)
-							{
-								//edit the edge for the parent to point to the new node
-								//edit the edge for the new node to point to the same children as the chosen node
-								if (tree2.edges[parent2][k] == edge2.Key)
-								{
-									tree2.edges[parent2][k] = nodeNew;
-									tree2.edges.Add(nodeNew, new List<TreeNode>(tree2.edges[edge2.Key]));
-									tree2.edges.Remove(edge2.Key);
-									break;
-								}
-							}
+							var test = node1_copy.Test;
+							test.param = rando.Next(dataPointMgr.DataColumnCount);
+							DataColumn col = dataPointMgr._columns[test.param];
+							test.valTest = col.GetTestValue(rando);
 						}
-						tree2.TraverseData(dataPointMgr.dataPoints[0]);
-						newCreations.Add(tree2);
+						
+						newCreations.Add(tree1_copy);
 					}
 					else
 					{
 						//all random new
-						var tree2 = CreateRandomTree();
-						tree2.TraverseData(dataPointMgr.dataPoints[0]);
-						newCreations.Add(tree2);
+						newCreations.Add(CreateRandomTree());
 					}
+				
 				}
+				//thin down the new creations
+				newCreations = ProcessPoolOfTrees(newCreations);
+				
+				//add the good ones back to the main population
 				starter.AddRange(newCreations);
-				starter = ProcessPoolOfTrees(starter, generationNumber);
+				
 				//TODO evaluate the trees somehow to determine the similarity and overlap of them all
 			}
 			//TODO add a step at the end to verify the results with a hold out data set
@@ -235,62 +183,90 @@ namespace GeneTree
 			dataPointMgr.LoadFromCsv(path);
 		}
 
+		public TreeTest CreateRandomTest()
+		{
+			TreeTest testYes = new TreeTest();
+			testYes.param = rando.Next(dataPointMgr.DataColumnCount);
+			DataColumn column = dataPointMgr._columns[testYes.param];
+			testYes.valTest = column.GetTestValue(rando);
+			return testYes;
+		}
+		public TreeNode CreateRandomNode(Tree tree)
+		{
+			TreeNode node = new TreeNode();
+			
+			//add node to tree
+			//TODO create a new method on the tree for adding a single node only (no children)
+			node._tree = tree;
+			tree._nodes.Add(node);	
+			
+			//TODO take this and other probabilities and move them somewhere central
+			node.IsTerminal = rando.NextDouble() > 0.5;
+			
+			//TODO: consider changing this or using some other scheme to prevent runaway initial trees.
+					
+			if (tree._nodes.Count > max_node_count_for_new_tree)
+			{
+				node.IsTerminal = true;
+			}
+			if (node.IsTerminal)
+			{
+				//TODO move this random class picking somewhere else
+				node.Classification = dataPointMgr.classes[rando.Next(dataPointMgr.classes.Length)];
+			}
+			else
+			{
+				//create the test				
+				node.Test = CreateRandomTest();
+			}			
+				
+			return node;
+		}
+
 		private Tree CreateRandomTree()
 		{
 			//build a random tree
-			var tree = new Tree();
-			var root = new TreeNode();
-			var test = new TreeTest();
-			test.param = rando.Next(dataPointMgr.DataColumnCount);
-			DataColumn column = dataPointMgr._columns[test.param];			
-			test.valTest = column.GetTestValue(rando);
+			Tree tree = new Tree();
 			
-			//just pull a random value from the data
-			int val_index = rando.Next(dataPointMgr.dataPoints.Count);
-			test.valTest = dataPointMgr.dataPoints[val_index]._data[test.param]._value;
-			test.isLessThanEqualTest = rando.NextDouble() > 0.5;
-			root.Test = test;
+			TreeNode root = CreateRandomNode(tree);			
 			tree.root = root;
+			root._tree = tree;
+			tree._nodes.Add(root);
+			
 			//run a queue to create children for non-terminal nodes
 			Queue<TreeNode> nonTermNodes = new Queue<TreeNode>();
 			nonTermNodes.Enqueue(root);
 			while (nonTermNodes.Count > 0)
 			{
 				var node = nonTermNodes.Dequeue();
+				
 				//need to create two new nodes, yes and no
-				List<TreeNode> yesNoNodes = new List<TreeNode>();
-				for (int i = 0; i < 2; i++)
+				
+				TreeNode node_true = CreateRandomNode(tree);
+				TreeNode node_false = CreateRandomNode(tree);
+				
+				node._trueNode = node_true;
+				node._falseNode = node_false;
+				
+				node_true._parent = node;
+				node_false._parent = node;
+				
+				node_true._parentTrue = true;
+				
+				//process the new nodes if they are not terminal
+				if (!node_true.IsTerminal)
 				{
-					var nodeYes = new TreeNode();
-					nodeYes.IsTerminal = rando.NextDouble() > 0.5;
-					//TODO: consider changing this or using some other scheme to prevent runaway initial trees.
-					if (tree.edges.Count > 12)
-					{
-						nodeYes.IsTerminal = true;
-					}
-					if (nodeYes.IsTerminal)
-					{
-						//class
-						nodeYes.Classification = dataPointMgr.classes[rando.Next(dataPointMgr.classes.Length)];
-					}
-					else
-					{
-						var testYes = new TreeTest();
-						testYes.param = rando.Next(dataPointMgr.DataColumnCount);
-						testYes.valTest = column.GetTestValue(rando);
-						testYes.isLessThanEqualTest = rando.NextDouble() > 0.5;
-						nodeYes.Test = testYes;
-						nonTermNodes.Enqueue(nodeYes);
-					}
-					yesNoNodes.Add(nodeYes);
+					nonTermNodes.Enqueue(node_true);
 				}
-				tree.edges.Add(node, yesNoNodes);
-			}
-			//output the tree structure
-			//Trace.WriteLine(tree.ToString());
+				if (!node_false.IsTerminal)
+				{
+					nonTermNodes.Enqueue(node_false);
+				}
+			}			
 			return tree;
 		}
 	}
 }
+
 
 

@@ -21,10 +21,11 @@ namespace GeneTree
 
 			TextWriterTraceListener twtl = new TextWriterTraceListener(string.Format("trace files/trace {0}.txt", DateTime.Now.Ticks));
 			twtl.Name = "TextLogger";
-			twtl.TraceOutputOptions = TraceOptions.ThreadId | TraceOptions.DateTime;
-
+			twtl.TraceOutputOptions = TraceOptions.ThreadId | TraceOptions.DateTime | TraceOptions.Timestamp;
+			
 			Trace.Listeners.Add(twtl);
 			Trace.AutoFlush = true;
+			
 		}
 
 		private void btnPoolRando_Click(object sender, EventArgs e)
@@ -51,6 +52,16 @@ namespace GeneTree
 		void Btn_loadWithConfigClick(object sender, EventArgs e)
 		{
 			ga_mgr.LoadDataFile(txt_dataFile.Text, txt_configFile.Text);
+		}
+		void Button1Click(object sender, EventArgs e)
+		{
+			//TODO delete this later
+			txt_dataFile.Text = @"C:\projects\gene-tree\GeneTree\bin\Debug\data\iris\iris.data";
+			txt_configFile.Text = @"C:\projects\gene-tree\GeneTree\bin\Debug\data\iris\iris_config.txt";
+		}
+		void Form1FormClosing(object sender, FormClosingEventArgs e)
+		{
+			Trace.Flush();
 		}
 	}
 }
