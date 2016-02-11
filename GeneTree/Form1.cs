@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -12,10 +13,53 @@ namespace GeneTree
 	public partial class Form1 : Form
 	{
 		GeneticAlgorithmManager ga_mgr = new GeneticAlgorithmManager();
+
+		void bw_DoWork(object sender, DoWorkEventArgs e)
+		{
+			ga_mgr.ProcessTheNextGeneration();
+		}
+
+		void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
+		{
+			prog_ongoing.Value = e.ProgressPercentage;
+		}
 		
+		void bw_UpdateProgress(int percent)
+		{
+			if (bw != null && bw.WorkerReportsProgress)
+			{
+				bw.ReportProgress(percent);
+			}
+		}
+
+		void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+		{
+			if (e.Error != null)
+			{
+				throw e.Error;
+			}
+		}
+		void InitBackgroundWorker()
+		{
+			bw = new BackgroundWorker();
+			bw.WorkerReportsProgress = true;
+			bw.DoWork += bw_DoWork;
+			bw.ProgressChanged += bw_ProgressChanged;
+			bw.RunWorkerCompleted += bw_RunWorkerCompleted;
+		}
+
+		void ga_mgr_ProgressUpdated(object sender, EventArg<int> e)
+		{
+			bw_UpdateProgress(e.Data);
+		}
+
 		public Form1()
 		{
-			InitializeComponent();
+			InitializeComponent();			
+			InitBackgroundWorker();
+			
+			ga_mgr.ProgressUpdated += ga_mgr_ProgressUpdated;
+			
 
 			Trace.Listeners.Clear();
 
@@ -27,12 +71,12 @@ namespace GeneTree
 			Trace.AutoFlush = true;
 			
 		}
+		
+		BackgroundWorker bw = new BackgroundWorker();
 
 		private void btnPoolRando_Click(object sender, EventArgs e)
 		{
-			ga_mgr.ProcessTheNextGeneration();
-
-			MessageBox.Show("the test is completed");
+			bw.RunWorkerAsync();
 		}
 		
 		DataPointConfiguration config;
@@ -60,6 +104,14 @@ namespace GeneTree
 			txt_configFile.Text = @"C:\projects\gene-tree\GeneTree\bin\Debug\data\iris\iris_config.txt";
 		}
 		void Form1FormClosing(object sender, FormClosingEventArgs e)
+		{
+			Trace.Flush();
+		}
+		void ExitToolStripMenuItemClick(object sender, EventArgs e)
+		{
+			this.Close();
+		}
+		void Menu_flushTraceClick(object sender, EventArgs e)
 		{
 			Trace.Flush();
 		}

@@ -11,7 +11,7 @@ namespace GeneTree
 	{
 		public double[] classes;
 		
-		public List<DataPoint> dataPoints = new List<DataPoint>();
+		public List<DataPoint> _dataPoints = new List<DataPoint>();
 		public List<DataColumn> _columns = new List<DataColumn>();
 		public DataPointConfiguration _config;
 		
@@ -20,6 +20,20 @@ namespace GeneTree
 			get
 			{
 				return _columns.Count - 1;
+			}
+		}
+		
+		public IEnumerable<DataPoint> GetSubsetOfDatapoints(double fractionToKeep, Random rando)
+		{
+			//quick trap to force fraction
+			fractionToKeep = Math.Min(Math.Max(fractionToKeep, 0), 1);
+			
+			foreach (var dataPoint in _dataPoints)
+			{
+				if (rando.NextDouble() < fractionToKeep)
+				{
+					yield return dataPoint;
+				}
 			}
 		}
 		
@@ -57,7 +71,7 @@ namespace GeneTree
 		public void DetermineClasses()
 		{
 			//TODO get rid of this method.  it does not seem necessary
-			classes = dataPoints.GroupBy(x => x._classification._value).Select(x => x.Key).ToArray();
+			classes = _dataPoints.GroupBy(x => x._classification._value).Select(x => x.Key).ToArray();
 		}
         
 		public void SetHeaders(string str_headers)
@@ -116,7 +130,7 @@ namespace GeneTree
 
 				//create data point from the string line
 				DataPoint dp = DataPoint.FromString(values, _columns);								
-				dataPoints.Add(dp);
+				_dataPoints.Add(dp);
 			}
 
 			foreach (var column in _columns)

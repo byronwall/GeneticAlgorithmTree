@@ -13,6 +13,17 @@ namespace GeneTree
 		Random rando = new Random();
 		DataPointManager dataPointMgr = new DataPointManager();
 		
+		public event EventHandler<EventArg<int>> ProgressUpdated;
+		
+		public void OnProgressUpdated(int progress)
+		{
+			var handler = ProgressUpdated;
+			if (handler != null)
+			{
+				handler(this, new EventArg<int>(progress));
+			}
+		}
+		
 		//class will do all of the heavy lifting for the GA
 		private List<Tree> CreateRandomPoolOfTrees(int size)
 		{
@@ -32,24 +43,16 @@ namespace GeneTree
 			List<Tree> keeps = new List<Tree>();
 			
 			Trace.WriteLine("doing the eval: ratio");
+			
+			var dataPoints = dataPointMgr.GetSubsetOfDatapoints(0.05, rando).ToList();
+			
 			foreach (var tree in trees)
-			{
-				int correct = 0;
-				foreach (var item in dataPointMgr.dataPoints)
-				{
-					//TODO add a Rand test here to only select some portion of the data for testing, maybe do a "big" test every so often
-					if (tree.TraverseData(item))
-					{
-						correct++;
-					}
-				}
-				double ratio = 1.0 * correct / dataPointMgr.dataPoints.Count;
-				//report accuracy
+			{					
+				int correct = tree.ProcessDataThroughTree(dataPoints);				
+				double ratio = 1.0 * correct / dataPoints.Count;
 				
-				//TODO improve the hueristic for evaluation
-				//TODO consider splitting this to consider tree size later in the game
+				//TODO improve the hueristic for evaluation				
 				double score = Math.Pow(ratio, 2);
-				//score = ratio;
 				
 				//TODO improve override for non improving score
 				if (score > tree._prevScore || rando.NextDouble() > 0.9)
@@ -66,7 +69,7 @@ namespace GeneTree
 		}
 
 		//TODO create a GeneticOptions and move these options over to it
-		int populationSize = 500;
+		int populationSize = 2000;
 		int generations = 100;
 		int max_node_count_for_new_tree = 12;
 			
@@ -88,18 +91,17 @@ namespace GeneTree
 				
 				//output some info on best
 				Trace.WriteLine(string.Join("\r\n", starter.Take(10).Select(c => c._prevScore.ToString())));
-				Trace.WriteLine(starter.First());
-				
+				Trace.WriteLine(starter.First());				
 				Trace.WriteLine("generation: " + generationNumber);
+				
 				for (int populationNumber = 0; populationNumber < populationSize; populationNumber++)
 				{
 					//make a new one!
-					var tester = rando.NextDouble();
+					double tester = rando.NextDouble();
 					//TODO: all of these stubs need to be turned into a new class that abstracts away the behavior
 					if (tester < 0.4)
 					{
-						//node swap
-						
+						//node swap						
 						Tree tree1 = starter[rando.Next(starter.Count())];						
 						Tree tree2 = starter[rando.Next(starter.Count())];
 						
@@ -168,6 +170,8 @@ namespace GeneTree
 				starter.AddRange(newCreations);
 				
 				//TODO evaluate the trees somehow to determine the similarity and overlap of them all
+				
+				OnProgressUpdated(100 * generationNumber / generations);
 			}
 			//TODO add a step at the end to verify the results with a hold out data set
 			//TODO add the ability to use the best tree for prediction and generate a results file w/ the predictions
@@ -195,16 +199,12 @@ namespace GeneTree
 		{
 			TreeNode node = new TreeNode();
 			
-			//add node to tree
-			//TODO create a new method on the tree for adding a single node only (no children)
-			node._tree = tree;
-			tree._nodes.Add(node);	
+			tree.AddNodeWithoutChildren(node);
 			
 			//TODO take this and other probabilities and move them somewhere central
 			node.IsTerminal = rando.NextDouble() > 0.5;
 			
-			//TODO: consider changing this or using some other scheme to prevent runaway initial trees.
-					
+			//TODO: consider changing this or using some other scheme to prevent runaway initial trees.					
 			if (tree._nodes.Count > max_node_count_for_new_tree)
 			{
 				node.IsTerminal = true;
@@ -228,10 +228,8 @@ namespace GeneTree
 			//build a random tree
 			Tree tree = new Tree();
 			
-			TreeNode root = CreateRandomNode(tree);			
-			tree.root = root;
-			root._tree = tree;
-			tree._nodes.Add(root);
+			TreeNode root = CreateRandomNode(tree);
+			tree.AddRootToTree(root);
 			
 			//run a queue to create children for non-terminal nodes
 			Queue<TreeNode> nonTermNodes = new Queue<TreeNode>();

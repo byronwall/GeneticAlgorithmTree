@@ -11,17 +11,16 @@ namespace GeneTree
 {
 	public class Tree
 	{
-		public TreeNode root;
+		public TreeNode _root;
 		public List<TreeNode> _nodes = new List<TreeNode>();
-		
 		public double _prevScore = double.MinValue;
 
 		public Tree Copy()
 		{
 			//create a new tree
 			Tree new_tree = new Tree();
-			new_tree.root = this.root.ReturnFullyLinkedCopyOfSelf();			
-			new_tree.AddNodeWithChildren(new_tree.root);
+			new_tree._root = this._root.ReturnFullyLinkedCopyOfSelf();			
+			new_tree.AddNodeWithChildren(new_tree._root);
 			new_tree._prevScore = this._prevScore;
 			
 			return new_tree;			
@@ -37,10 +36,21 @@ namespace GeneTree
 			}
 		}
 		
-		public void AddNodeWithChildren(TreeNode node)
+		public void AddRootToTree(TreeNode node)
+		{
+			this._root = node;
+			
+			AddNodeWithoutChildren(node);
+		}
+
+		public void AddNodeWithoutChildren(TreeNode node)
 		{
 			_nodes.Add(node);
 			node._tree = this;
+		}
+		public void AddNodeWithChildren(TreeNode node)
+		{
+			AddNodeWithoutChildren(node);
 			
 			if (!node.IsTerminal)
 			{
@@ -50,7 +60,20 @@ namespace GeneTree
 		}
 		public bool TraverseData(DataPoint point)
 		{
-			return TraverseData(root, point);
+			return TraverseData(_root, point);
+		}
+		
+		public int ProcessDataThroughTree(IEnumerable<DataPoint> dataPoints)
+		{
+			int correct = 0;
+			foreach (var dataPoint in dataPoints)
+			{
+				if (TraverseData(dataPoint))
+				{
+					correct++;		
+				}
+			}			
+			return correct;
 		}
 
 		public bool TraverseData(TreeNode node, DataPoint point)
@@ -81,7 +104,7 @@ namespace GeneTree
 			StringBuilder sb = new StringBuilder();
 
 			Stack<TreeNode> nodes = new Stack<TreeNode>();
-			nodes.Push(root);
+			nodes.Push(_root);
 
 			while (nodes.Count > 0)
 			{
