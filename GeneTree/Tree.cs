@@ -14,6 +14,9 @@ namespace GeneTree
 		public TreeNode _root;
 		public List<TreeNode> _nodes = new List<TreeNode>();
 		public double _prevScore = double.MinValue;
+		
+		//TODO remove this for better tracking somewhere else
+		public string _source;
 
 		public Tree Copy()
 		{
@@ -58,17 +61,17 @@ namespace GeneTree
 				AddNodeWithChildren(node._falseNode);				
 			}
 		}
-		public bool TraverseData(DataPoint point)
+		public bool TraverseData(DataPoint point, ConfusionMatrix matrix)
 		{
-			return TraverseData(_root, point);
+			return TraverseData(_root, point, matrix);
 		}
 		
-		public int ProcessDataThroughTree(IEnumerable<DataPoint> dataPoints)
+		public int ProcessDataThroughTree(IEnumerable<DataPoint> dataPoints, ConfusionMatrix matrix)
 		{
 			int correct = 0;
 			foreach (var dataPoint in dataPoints)
 			{
-				if (TraverseData(dataPoint))
+				if (TraverseData(dataPoint, matrix))
 				{
 					correct++;		
 				}
@@ -76,11 +79,13 @@ namespace GeneTree
 			return correct;
 		}
 
-		public bool TraverseData(TreeNode node, DataPoint point)
+		public bool TraverseData(TreeNode node, DataPoint point, ConfusionMatrix matrix)
 		{
 			//start at root, test if correct
 			if (node.IsTerminal)
 			{
+				//these are known to be ints since they are classes from a Codebook
+				matrix.AddItem((int)point._classification._value, (int)node.Classification);
 				return node.Classification == point._classification._value;
 			}
 			else
@@ -89,12 +94,12 @@ namespace GeneTree
 				if (node.Test.isTrueTest(point))
 				{
 					//0 will be yes
-					return TraverseData(node._trueNode, point);
+					return TraverseData(node._trueNode, point, matrix);
 				}
 				else
 				{
 					//1 will be no
-					return TraverseData(node._falseNode, point);
+					return TraverseData(node._falseNode, point, matrix);
 				}
 			}
 		}
@@ -117,9 +122,30 @@ namespace GeneTree
 					nodes.Push(node._falseNode);
 				}
 			}
-
 			return sb.ToString();
 		}
+		public override int GetHashCode()
+		{
+			int hashCode = 0;
+				unchecked
+				{
+					if (_root != null)
+						hashCode += 1000000007 * _root.GetHashCode();
+					if (_nodes != null)
+						hashCode += 1000000009 * _nodes.GetHashCode();
+					hashCode += 1000000021 * _prevScore.GetHashCode();
+				}
+					return hashCode;
+		}
+
+		public override bool Equals(object obj)
+		{
+			Tree other = obj as Tree;
+			if (other == null)
+				return false;
+			return this.ToString() == other.ToString();
+		}
 	}
+	
 }
 

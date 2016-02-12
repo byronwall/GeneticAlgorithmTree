@@ -15,6 +15,8 @@ namespace GeneTree
 		public List<DataColumn> _columns = new List<DataColumn>();
 		public DataPointConfiguration _config;
 		
+		public List<int> classCounts = new List<int>();
+		
 		public int DataColumnCount
 		{
 			get
@@ -72,39 +74,10 @@ namespace GeneTree
 		{
 			//TODO get rid of this method.  it does not seem necessary
 			classes = _dataPoints.GroupBy(x => x._classification._value).Select(x => x.Key).ToArray();
-		}
-        
-		public void SetHeaders(string str_headers)
-		{
-			//TODO come up with a cleaner architecture than this trap (force default from outside)
-			if (_columns.Count > 0)
-			{
-				return;
-			}
 			
-			var headers_from_csv = str_headers.Split(',');
-			
-			foreach (var header in headers_from_csv)
-			{
-				DataColumn col;		
-				//TODO pull this info from a config file or the GUI, maybe a first step to load headers and confirm data type						
-				//HACK: forces all to be category this way
-				//HACK: figure out a better way to identify the last item
-				if (true || header == headers_from_csv.Last())
-				{
-					col = new CategoryDataColumn();
-					col._type = DataColumn.DataValueTypes.CATEGORY;
-					col._codebook = new CodeBook();
-				}
-				else
-				{
-					col = new DoubleDataColumn();
-				}
+			foreach (var _class in _dataPoints.GroupBy(x => x._classification._value)) {
 				
-				col._header = header;
-				
-				_columns.Add(col);				
-			}
+			} 
 		}
         
 		public void LoadFromCsv(string path)
@@ -113,7 +86,8 @@ namespace GeneTree
 			var reader = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 			
 			var header_line = reader.ReadLine();
-			SetHeaders(header_line);
+			
+			//TODO some step to ensure headers are in same order as data, create mapping here possibly
 			
 			//parse the CSV data and create data points
 			while (!reader.EndOfStream)

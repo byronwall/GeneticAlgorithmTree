@@ -33,7 +33,7 @@ namespace GeneTree
 
 		public override string ToString()
 		{
-			return string.Format("param {0} <= {1}", param, valTest);
+			return string.Format("{0} LTE {1}", param, valTest);
 		}
 	}
 }

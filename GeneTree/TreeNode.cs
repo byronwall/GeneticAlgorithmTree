@@ -30,7 +30,7 @@ namespace GeneTree
 		{
 			if (IsTerminal)
 			{
-				return string.Format("terminal to {0}", Classification.ToString());
+				return string.Format("TERM to {0}", Classification.ToString());
 			}
 			else
 			{

@@ -28,7 +28,7 @@ namespace GeneTree
 		private List<Tree> CreateRandomPoolOfTrees(int size)
 		{
 			//create a number of random trees and report results from all of them
-			List<Tree> results = new List<Tree>();
+			var results = new List<Tree>();
 			for (int i = 0; i < size; i++)
 			{
 				results.Add(CreateRandomTree());
@@ -36,26 +36,37 @@ namespace GeneTree
 			return results;
 		}
 
-		private List<Tree> ProcessPoolOfTrees(IEnumerable<Tree> trees)
+		/// <summary>
+		/// create a number of random trees and report results from all of them
+		/// </summary>
+		/// <param name="trees"></param>
+		/// <returns></returns>
+		private List<Tree> ProcessPoolOfTrees(IEnumerable<Tree> trees, int generation)
 		{
-			//create a number of random trees and report results from all of them
-			
 			List<Tree> keeps = new List<Tree>();
 			
-			Trace.WriteLine("doing the eval: ratio");
+			double prob_to_keep_data = 0.02;
 			
-			var dataPoints = dataPointMgr.GetSubsetOfDatapoints(0.05, rando).ToList();
+			prob_to_keep_data *= (generation % 10 == 0) ? 10 : 1;
+			
+			var dataPoints = dataPointMgr.GetSubsetOfDatapoints(0.02, rando).ToList();
 			
 			foreach (var tree in trees)
-			{					
-				int correct = tree.ProcessDataThroughTree(dataPoints);				
+			{				
+				ConfusionMatrix cm = new ConfusionMatrix(dataPointMgr.classes.Count());
+				
+				int correct = tree.ProcessDataThroughTree(dataPoints, cm);
+				
+				//Trace.WriteLine(cm);
+				
+				
 				double ratio = 1.0 * correct / dataPoints.Count;
 				
 				//TODO improve the hueristic for evaluation				
-				double score = Math.Pow(ratio, 2);
+				double score = cm.GetKappa();
 				
 				//TODO improve override for non improving score
-				if (score > tree._prevScore || rando.NextDouble() > 0.9)
+				if (score > tree._prevScore || rando.NextDouble() > 0.98)
 				{				
 					//only add the new tree to the results if the score improved
 					keeps.Add(tree);
@@ -64,14 +75,13 @@ namespace GeneTree
 				tree._prevScore = score;
 			}
 			
-			//TODO improve the selection here to not just take the top half, maybe iterate them all and select based on the score
 			return keeps;
 		}
 
 		//TODO create a GeneticOptions and move these options over to it
 		int populationSize = 2000;
-		int generations = 100;
-		int max_node_count_for_new_tree = 12;
+		int generations = 1000;
+		int max_node_count_for_new_tree = 40;
 			
 		public void ProcessTheNextGeneration()
 		{
@@ -79,27 +89,36 @@ namespace GeneTree
 			
 			//start with a list of trees and trim it down
 			var starter = CreateRandomPoolOfTrees(populationSize);
-			starter = ProcessPoolOfTrees(starter);
-			//do the gene operations
+			starter = ProcessPoolOfTrees(starter, 1);
 			
-			List<Tree> newCreations = new List<Tree>();
 			//TODO add a step to check for "convergence" and stop iterating
 			for (int generationNumber = 0; generationNumber < generations; generationNumber++)
 			{
+				List<Tree> newCreations = new List<Tree>();
+				
+				//remove duplicate trees if any
+				starter = starter.Distinct().ToList();
+				
 				//thin down the herd and take pop size or total
 				starter = starter.OrderByDescending(c => c._prevScore).Take(Math.Min(populationSize, starter.Count)).ToList();
 				
 				//output some info on best
 				Trace.WriteLine(string.Join("\r\n", starter.Take(10).Select(c => c._prevScore.ToString())));
-				Trace.WriteLine(starter.First());				
-				Trace.WriteLine("generation: " + generationNumber);
+				
+				foreach (var tree in starter.Take(1))
+				{
+					Trace.WriteLine("");
+					Trace.WriteLine(tree);
+				}
+				
+				Trace.WriteLine("generation: " + generationNumber);	
 				
 				for (int populationNumber = 0; populationNumber < populationSize; populationNumber++)
 				{
 					//make a new one!
 					double tester = rando.NextDouble();
 					//TODO: all of these stubs need to be turned into a new class that abstracts away the behavior
-					if (tester < 0.4)
+					if (tester < 0.2)
 					{
 						//node swap						
 						Tree tree1 = starter[rando.Next(starter.Count())];						
@@ -107,6 +126,9 @@ namespace GeneTree
 						
 						Tree tree1_copy = tree1.Copy();
 						Tree tree2_copy = tree2.Copy();
+						
+						tree1_copy._source = "swap";
+						tree2_copy._source = "swap";
 							
 						TreeNode node1 = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
 						TreeNode node2 = tree2_copy._nodes[rando.Next(tree2_copy._nodes.Count)];
@@ -122,14 +144,39 @@ namespace GeneTree
 						{
 							newCreations.Add(tree2_copy);
 						}
-					}					
-					/*else if (false && tester < 0.35)
+					}
+					else if (tester < 0.4)
 					{
-						//TODO implement deletion or some sort of trimming operation, deleting nodes may not be best w/ terminal nodes
-						//node deletion, not implemented for now				
+						//node deletion
 						
-					}*/
-					else if (tester < 0.8)
+						Tree tree1 = starter[rando.Next(starter.Count())];					
+						Tree tree1_copy = tree1.Copy();
+						TreeNode node1 = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
+						
+						TreeNode node1_rando_term = CreateRandomNode(tree1_copy, true);
+						
+						//stick the new node into the old one's spot
+						node1_rando_term._parent = node1._parent;
+						node1_rando_term._parentTrue = node1._parentTrue;
+						
+						tree1_copy.RemoveNodeWithChildren(node1);
+						
+						if (node1_rando_term._parent != null && tree1_copy._nodes.Count > 0)
+						{
+							if (node1_rando_term._parentTrue)
+							{
+								node1_rando_term._parent._trueNode = node1_rando_term;
+							}
+							else
+							{
+								node1_rando_term._parent._falseNode = node1_rando_term;
+							}
+							
+							tree1_copy._source = "delete";
+							newCreations.Add(tree1_copy);
+						}
+					}
+					else if (tester < 0.9)
 					{
 						//node parameter/value change
 						
@@ -138,20 +185,25 @@ namespace GeneTree
 						
 						TreeNode node1_copy = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
 						
-						//TODO split out changing the parameter and value
-						//TODO allow for the value to be modifying (add/subtract/etc. to make smaller changes)
-						
-						
+						//TODO allow for the value to be modifying (add/subtract/etc. to make smaller changes)				
 						if (node1_copy.IsTerminal)
 						{
 							node1_copy.Classification = dataPointMgr.classes[rando.Next(dataPointMgr.classes.Length)];
+							tree1_copy._source = "new class";
 						}
 						else
 						{
-							var test = node1_copy.Test;
-							test.param = rando.Next(dataPointMgr.DataColumnCount);
-							DataColumn col = dataPointMgr._columns[test.param];
-							test.valTest = col.GetTestValue(rando);
+							var test = node1_copy.Test;							
+							tree1_copy._source = "new test value";
+							
+							if (rando.NextDouble() < 0.5)
+							{
+								//change param test
+								test.param = rando.Next(dataPointMgr.DataColumnCount);
+								tree1_copy._source = "new param";
+							}
+							
+							test.valTest = dataPointMgr._columns[test.param].GetTestValue(rando);
 						}
 						
 						newCreations.Add(tree1_copy);
@@ -159,22 +211,30 @@ namespace GeneTree
 					else
 					{
 						//all random new
-						newCreations.Add(CreateRandomTree());
+						Tree tree = CreateRandomTree();
+						tree._source = "new tree";
+						
+						newCreations.Add(tree);
 					}
 				
 				}
 				//thin down the new creations
-				newCreations = ProcessPoolOfTrees(newCreations);
+				newCreations = ProcessPoolOfTrees(newCreations, generationNumber);
+				
+				//output some data about the keepers
+				foreach (var element in newCreations.GroupBy(c=>c._source))
+				{
+					Trace.WriteLine(string.Format("{0} has {1} = {2}", element.Key, element.Count(), 1.0 * element.Count() / populationSize));
+				} 
 				
 				//add the good ones back to the main population
 				starter.AddRange(newCreations);
-				
-				//TODO evaluate the trees somehow to determine the similarity and overlap of them all
 				
 				OnProgressUpdated(100 * generationNumber / generations);
 			}
 			//TODO add a step at the end to verify the results with a hold out data set
 			//TODO add the ability to use the best tree for prediction and generate a results file w/ the predictions
+			OnProgressUpdated(100);
 		}
 
 		public void LoadDataFile(string csv_path, string config_path)
@@ -195,7 +255,7 @@ namespace GeneTree
 			testYes.valTest = column.GetTestValue(rando);
 			return testYes;
 		}
-		public TreeNode CreateRandomNode(Tree tree)
+		public TreeNode CreateRandomNode(Tree tree, bool ShouldForceTerminal = false)
 		{
 			TreeNode node = new TreeNode();
 			
@@ -205,7 +265,7 @@ namespace GeneTree
 			node.IsTerminal = rando.NextDouble() > 0.5;
 			
 			//TODO: consider changing this or using some other scheme to prevent runaway initial trees.					
-			if (tree._nodes.Count > max_node_count_for_new_tree)
+			if (ShouldForceTerminal || tree._nodes.Count > max_node_count_for_new_tree)
 			{
 				node.IsTerminal = true;
 			}
@@ -265,6 +325,3 @@ namespace GeneTree
 		}
 	}
 }
-
-
-

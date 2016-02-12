@@ -57,7 +57,7 @@ namespace GeneTree
 		{
 			InitializeComponent();			
 			InitBackgroundWorker();
-			
+						
 			ga_mgr.ProgressUpdated += ga_mgr_ProgressUpdated;
 			
 

@@ -51,5 +51,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Test1.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GeneTree\GeneTree.csproj">
+      <Project>{7445268C-3551-44C3-BA45-3AFFC7443B54}</Project>
+      <Name>GeneTree</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
