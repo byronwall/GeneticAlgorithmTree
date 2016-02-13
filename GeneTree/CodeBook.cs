@@ -16,7 +16,7 @@ namespace GeneTree
 
 		public double GetOrAddValue(string rawValue)
 		{
-			//TODO improve speed of these steps.  might want to store raw and process codebook at end
+			//this is fast enough for now, List is much slower
 			if (!_mappings.ContainsKey(rawValue))
 			{
 				return AddToCodebook(rawValue);
@@ -29,14 +29,6 @@ namespace GeneTree
 			double value = _mappings.Count;
 			_mappings.Add(rawValue, _mappings.Count);
 			return value;
-		}
-
-		public void SetMappings(IEnumerable<string> rawValues)
-		{
-			foreach (var value in rawValues.Distinct())
-			{
-				_mappings.Add(value, _mappings.Count);
-			}
 		}
 	}
 }

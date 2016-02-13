@@ -20,6 +20,8 @@ namespace GeneTree
 		public string _header;
 		public CodeBook _codebook;
 		
+		public bool _hasMissingValues;
+		
 		public double _min = double.MaxValue;
 		public double _max = double.MinValue;
 		

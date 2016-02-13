@@ -35,6 +35,19 @@
         	this.txt_configFile = new System.Windows.Forms.TextBox();
         	this.btn_configDefault = new System.Windows.Forms.Button();
         	this.btn_loadWithConfig = new System.Windows.Forms.Button();
+        	this.button1 = new System.Windows.Forms.Button();
+        	this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+        	this.prog_ongoing = new System.Windows.Forms.ToolStripProgressBar();
+        	this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+        	this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        	this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        	this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        	this.menu_flushTrace = new System.Windows.Forms.ToolStripMenuItem();
+        	this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        	this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        	this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        	this.statusStrip1.SuspendLayout();
+        	this.menuStrip1.SuspendLayout();
         	this.SuspendLayout();
         	// 
         	// btnPoolRando
@@ -53,7 +66,7 @@
         	this.txt_dataFile.Name = "txt_dataFile";
         	this.txt_dataFile.Size = new System.Drawing.Size(434, 20);
         	this.txt_dataFile.TabIndex = 2;
-        	this.txt_dataFile.Text = "C:\\projects\\gene-tree\\GeneTree\\bin\\Debug\\data\\prudential\\train.csv";
+        	this.txt_dataFile.Text = "C:\\projects\\gene-tree\\GeneTree\\bin\\Debug\\data\\prudential\\train-no-id.csv";
         	// 
         	// label1
         	// 
@@ -99,11 +112,102 @@
         	this.btn_loadWithConfig.UseVisualStyleBackColor = true;
         	this.btn_loadWithConfig.Click += new System.EventHandler(this.Btn_loadWithConfigClick);
         	// 
+        	// button1
+        	// 
+        	this.button1.Location = new System.Drawing.Point(117, 50);
+        	this.button1.Name = "button1";
+        	this.button1.Size = new System.Drawing.Size(75, 23);
+        	this.button1.TabIndex = 8;
+        	this.button1.Text = "button1";
+        	this.button1.UseVisualStyleBackColor = true;
+        	this.button1.Click += new System.EventHandler(this.Button1Click);
+        	// 
+        	// statusStrip1
+        	// 
+        	this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+			this.prog_ongoing});
+        	this.statusStrip1.Location = new System.Drawing.Point(0, 399);
+        	this.statusStrip1.Name = "statusStrip1";
+        	this.statusStrip1.Size = new System.Drawing.Size(621, 22);
+        	this.statusStrip1.TabIndex = 9;
+        	this.statusStrip1.Text = "statusStrip1";
+        	// 
+        	// prog_ongoing
+        	// 
+        	this.prog_ongoing.Name = "prog_ongoing";
+        	this.prog_ongoing.Size = new System.Drawing.Size(200, 16);
+        	// 
+        	// menuStrip1
+        	// 
+        	this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+			this.fileToolStripMenuItem,
+			this.toolsToolStripMenuItem,
+			this.helpToolStripMenuItem});
+        	this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+        	this.menuStrip1.Name = "menuStrip1";
+        	this.menuStrip1.Size = new System.Drawing.Size(621, 24);
+        	this.menuStrip1.TabIndex = 10;
+        	this.menuStrip1.Text = "menuStrip1";
+        	// 
+        	// fileToolStripMenuItem
+        	// 
+        	this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+			this.exitToolStripMenuItem});
+        	this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+        	this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+        	this.fileToolStripMenuItem.Text = "&File";
+        	// 
+        	// exitToolStripMenuItem
+        	// 
+        	this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+        	this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
+        	this.exitToolStripMenuItem.Text = "E&xit";
+        	this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItemClick);
+        	// 
+        	// toolsToolStripMenuItem
+        	// 
+        	this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+			this.menu_flushTrace,
+			this.optionsToolStripMenuItem});
+        	this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+        	this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
+        	this.toolsToolStripMenuItem.Text = "&Tools";
+        	// 
+        	// menu_flushTrace
+        	// 
+        	this.menu_flushTrace.Name = "menu_flushTrace";
+        	this.menu_flushTrace.Size = new System.Drawing.Size(133, 22);
+        	this.menu_flushTrace.Text = "Flush Trace";
+        	this.menu_flushTrace.Click += new System.EventHandler(this.Menu_flushTraceClick);
+        	// 
+        	// optionsToolStripMenuItem
+        	// 
+        	this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
+        	this.optionsToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
+        	this.optionsToolStripMenuItem.Text = "&Options";
+        	// 
+        	// helpToolStripMenuItem
+        	// 
+        	this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+			this.aboutToolStripMenuItem});
+        	this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+        	this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+        	this.helpToolStripMenuItem.Text = "&Help";
+        	// 
+        	// aboutToolStripMenuItem
+        	// 
+        	this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+        	this.aboutToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+        	this.aboutToolStripMenuItem.Text = "&About...";
+        	// 
         	// Form1
         	// 
         	this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
         	this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         	this.ClientSize = new System.Drawing.Size(621, 421);
+        	this.Controls.Add(this.statusStrip1);
+        	this.Controls.Add(this.menuStrip1);
+        	this.Controls.Add(this.button1);
         	this.Controls.Add(this.btn_loadWithConfig);
         	this.Controls.Add(this.btn_configDefault);
         	this.Controls.Add(this.label2);
@@ -111,8 +215,14 @@
         	this.Controls.Add(this.label1);
         	this.Controls.Add(this.txt_dataFile);
         	this.Controls.Add(this.btnPoolRando);
+        	this.MainMenuStrip = this.menuStrip1;
         	this.Name = "Form1";
         	this.Text = "GeneTree";
+        	this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1FormClosing);
+        	this.statusStrip1.ResumeLayout(false);
+        	this.statusStrip1.PerformLayout();
+        	this.menuStrip1.ResumeLayout(false);
+        	this.menuStrip1.PerformLayout();
         	this.ResumeLayout(false);
         	this.PerformLayout();
 
@@ -127,6 +237,17 @@
         private System.Windows.Forms.TextBox txt_configFile;
         private System.Windows.Forms.Button btn_configDefault;
         private System.Windows.Forms.Button btn_loadWithConfig;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripProgressBar prog_ongoing;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem menu_flushTrace;
     }
 }
 

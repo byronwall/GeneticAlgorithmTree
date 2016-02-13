@@ -45,11 +45,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeBook.cs" />
+    <Compile Include="ConfusionMatrix.cs" />
     <Compile Include="DataPoint.cs" />
     <Compile Include="DataPointConfiguration.cs" />
     <Compile Include="DataPointManager.cs" />
     <Compile Include="DataValue.cs" />
     <Compile Include="DataColumn.cs" />
+    <Compile Include="EventArg.cs" />
     <Compile Include="GeneticAlgorithmManager.cs" />
     <Compile Include="Tree.cs" />
     <Compile Include="TreeNode.cs" />
@@ -91,6 +93,8 @@
     <Content Include="ProfilingSessions\Session20160208_212541.sdps" />
     <Content Include="ProfilingSessions\Session20160208_213114.sdps" />
     <Content Include="ProfilingSessions\Session20160208_213856.sdps" />
+    <Content Include="ProfilingSessions\Session20160209_215624.sdps" />
+    <Content Include="ProfilingSessions\Session20160211_213219.sdps" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

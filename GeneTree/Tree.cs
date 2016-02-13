@@ -11,127 +11,78 @@ namespace GeneTree
 {
 	public class Tree
 	{
-		public TreeNode root;
-		public Dictionary<TreeNode, List<TreeNode>> edges = new Dictionary<TreeNode, List<TreeNode>>();
+		public TreeNode _root;
+		public List<TreeNode> _nodes = new List<TreeNode>();
+		public double _prevScore = double.MinValue;
+		
+		//TODO remove this for better tracking somewhere else
+		public string _source;
 
 		public Tree Copy()
 		{
-			Tree copy = new Tree();
-			copy.root = this.root;
-			copy.edges = new Dictionary<TreeNode, List<TreeNode>>();
-
-			foreach (var item in this.edges)
-			{
-				copy.edges[item.Key] = new List<TreeNode>(item.Value);
-			}
-
-			return copy;
+			//create a new tree
+			Tree new_tree = new Tree();
+			new_tree._root = this._root.ReturnFullyLinkedCopyOfSelf();			
+			new_tree.AddNodeWithChildren(new_tree._root);
+			new_tree._prevScore = this._prevScore;
+			
+			return new_tree;			
 		}
-		public void RemoveNode(TreeNode node)
+		public void RemoveNodeWithChildren(TreeNode node)
 		{
-			if (edges.ContainsKey(node))
+			_nodes.Remove(node);
+			
+			if (!node.IsTerminal)
 			{
-				//find the node in edges
-				foreach (var child in edges[node])
-				{
-					//remove each child recursively
-					RemoveNode(child);
-				}
-
-				//remove the node from edges
-				edges.Remove(node);
+				RemoveNodeWithChildren(node._trueNode);
+				RemoveNodeWithChildren(node._falseNode);				
 			}
 		}
-
-		public void AddNodeWithChildrenFromTree(Tree sourceTree, TreeNode node)
+		
+		public void AddRootToTree(TreeNode node)
 		{
-			//add the node to the current list of edges
-			if (sourceTree.edges.ContainsKey(node))
-			{
-				edges.Add(node, new List<TreeNode>(sourceTree.edges[node]));
-
-				foreach (var child in sourceTree.edges[node])
-				{
-					AddNodeWithChildrenFromTree(sourceTree, child);
-				}
-
-				//go through the edges in teh source tree and duplicate with new lists
-
-				//do this recursively
-			}
+			this._root = node;
+			
+			AddNodeWithoutChildren(node);
 		}
 
-		public bool ContainsNodeOrChildren(Tree sourceTree, TreeNode node)
+		public void AddNodeWithoutChildren(TreeNode node)
 		{
-			if (edges.ContainsKey(node))
-			{
-				return true;
-			}
-
-			if (!sourceTree.edges.ContainsKey(node))
-			{
-				return false;
-			}
-
-			foreach (var child in sourceTree.edges[node])
-			{
-				if (ContainsNodeOrChildren(sourceTree, child))
-				{
-					return true;
-				}
-			}
-
-			return false;
-
+			_nodes.Add(node);
+			node._tree = this;
 		}
-
-		public bool TraverseData(DataPoint point)
+		public void AddNodeWithChildren(TreeNode node)
 		{
-			/* TODO improve the speed of this call (and overload).
- 			* it's by far the most expensive.
-			* will probably do better to get rid of dictionary.
-			* the GetItem calls are the worst part 
-			*/
-			return TraverseData(root, point);
+			AddNodeWithoutChildren(node);
+			
+			if (!node.IsTerminal)
+			{
+				AddNodeWithChildren(node._trueNode);
+				AddNodeWithChildren(node._falseNode);				
+			}
 		}
-
-		public TreeNode FindParentNode(TreeNode child)
+		public bool TraverseData(DataPoint point, ConfusionMatrix matrix)
 		{
-			return FindParentNode(child, root);
+			return TraverseData(_root, point, matrix);
 		}
-		public TreeNode FindParentNode(TreeNode child, TreeNode possibleParent)
+		
+		public ConfusionMatrix ProcessDataThroughTree(DataPointManager dataPointMgr)
 		{
-			//stop if child is in list of edges
-			if (possibleParent.IsTerminal)
+			ConfusionMatrix matrix = new ConfusionMatrix(dataPointMgr.classes.Length);
+			foreach (var dataPoint in dataPointMgr._pointsToTest)
 			{
-				return null;
-			}
-
-			if (edges[possibleParent].Contains(child))
-			{
-				return possibleParent;
-			}
-			else
-			{
-				foreach (var nextPossibleParent in edges[possibleParent])
-				{
-					var temp = FindParentNode(child, nextPossibleParent);
-
-					if (temp != null)
-					{
-						return temp;
-					}
-				}
-			}
-
-			return null;
+				TraverseData(dataPoint, matrix);
+			}			
+			return matrix;;
 		}
 
-		public bool TraverseData(TreeNode node, DataPoint point)
+		public bool TraverseData(TreeNode node, DataPoint point, ConfusionMatrix matrix)
 		{
 			//start at root, test if correct
 			if (node.IsTerminal)
 			{
+				//these are known to be ints since they are classes from a Codebook
+				matrix.AddItem((int)point._classification._value, (int)node.Classification);
 				return node.Classification == point._classification._value;
 			}
 			else
@@ -140,12 +91,12 @@ namespace GeneTree
 				if (node.Test.isTrueTest(point))
 				{
 					//0 will be yes
-					return TraverseData(edges[node][0], point);
+					return TraverseData(node._trueNode, point, matrix);
 				}
 				else
 				{
 					//1 will be no
-					return TraverseData(edges[node][1], point);
+					return TraverseData(node._falseNode, point, matrix);
 				}
 			}
 		}
@@ -155,7 +106,7 @@ namespace GeneTree
 			StringBuilder sb = new StringBuilder();
 
 			Stack<TreeNode> nodes = new Stack<TreeNode>();
-			nodes.Push(root);
+			nodes.Push(_root);
 
 			while (nodes.Count > 0)
 			{
@@ -164,11 +115,34 @@ namespace GeneTree
 
 				if (!node.IsTerminal)
 				{
-					edges[node].ForEach(nodes.Push);
+					nodes.Push(node._trueNode);
+					nodes.Push(node._falseNode);
 				}
 			}
-
 			return sb.ToString();
 		}
+		public override int GetHashCode()
+		{
+			int hashCode = 0;
+				unchecked
+				{
+					if (_root != null)
+						hashCode += 1000000007 * _root.GetHashCode();
+					if (_nodes != null)
+						hashCode += 1000000009 * _nodes.GetHashCode();
+					hashCode += 1000000021 * _prevScore.GetHashCode();
+				}
+					return hashCode;
+		}
+
+		public override bool Equals(object obj)
+		{
+			Tree other = obj as Tree;
+			if (other == null)
+				return false;
+			return this.ToString() == other.ToString();
+		}
 	}
+	
 }
+

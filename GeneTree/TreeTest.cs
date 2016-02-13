@@ -7,30 +7,120 @@ using System.Threading.Tasks;
 
 namespace GeneTree
 {
-    public class TreeTest
-    {
-        public int param; //data array index to test
-        public double valTest; // value to test, low
-        public bool isLessThanEqualTest; //returns true if
+	public abstract class TreeTest
+	{
+		public abstract TreeTest Copy();
+		public abstract bool isTrueTest(DataPoint point);
+		
+		public static TreeTest TreeTestFactory(DataPointManager dataPointMgr, Random rando)
+		{			
+			var col_param = rando.Next(dataPointMgr.DataColumnCount);
+			DataColumn column = dataPointMgr._columns[col_param];
+			
+			double prob_missing_test = 0.3;
+			
+			if (column._hasMissingValues && rando.NextDouble() < prob_missing_test)
+			{
+				MissingTreeTest test = new MissingTreeTest();
+				test._param = col_param;					
+				return test;
+			}
+			
+			switch (column._type)
+			{
+				case DataColumn.DataValueTypes.NUMBER:					
+					LessThanEqualTreeTest test = new LessThanEqualTreeTest();
+					test.param = col_param;					
+					test.valTest = column.GetTestValue(rando);
+					return test;
+				case DataColumn.DataValueTypes.CATEGORY:
+					EqualTreeTest test_eq = new EqualTreeTest();					
+					test_eq._param = col_param;					
+					test_eq._valTest = column.GetTestValue(rando);
+					return test_eq;
+				default:
+					throw new ArgumentOutOfRangeException("column.Type");
+			}
+		}
+	}
+	
+	public class MissingTreeTest : TreeTest
+	{
+		public int _param;
+		
+		#region implemented abstract members of TreeTest
+		public override TreeTest Copy()
+		{
+			var test_copy = new MissingTreeTest();
+			
+			test_copy._param = this._param;
+			
+			return test_copy;
+		}
+		public override bool isTrueTest(DataPoint point)
+		{
+			return point._data[_param]._isMissing;
+		}
+		#endregion
+		
+		public override string ToString()
+		{
+			return string.Format("{0} missing", _param);
+		}
+	}
+	
+	public class EqualTreeTest : TreeTest
+	{
+		public double _valTest;
+		public int _param;
+		
+		#region implemented abstract members of TreeTest
+		public override TreeTest Copy()
+		{
+			var test_copy = new EqualTreeTest();
+			
+			test_copy._param = this._param;
+			test_copy._valTest = this._valTest;
+			
+			return test_copy;
+		}
+		public override bool isTrueTest(DataPoint point)
+		{
+			return point._data[_param]._value == _valTest;
+		}
+		#endregion
+		
+		public override string ToString()
+		{
+			return string.Format("{0} == {1}", _param, _valTest);
+		}
+	}
+	
+	public class LessThanEqualTreeTest : TreeTest
+	{
+		public int param;
+		public double valTest;
 
-        //TODO add the ability to test against another value in the data, will work against the balance scale data
+		//TODO add the ability to test against another value in the data, will work against the balance scale data
+        
+		public override TreeTest Copy()
+		{
+			LessThanEqualTreeTest test_copy = new LessThanEqualTreeTest();
+			
+			test_copy.param = this.param;
+			test_copy.valTest = this.valTest;
+			
+			return test_copy;
+		}
 
-        public bool isTrueTest(DataPoint point)
-        {
-        	var lessThanTest = point._data[param]._value <= valTest;
-            if (isLessThanEqualTest)
-            {				
-				return lessThanTest;
-            }
-            else
-            {
-				return !lessThanTest;
-            }
-        }
+		public override bool isTrueTest(DataPoint point)
+		{
+			return point._data[param]._value <= valTest;            
+		}
 
-        public override string ToString()
-        {
-            return string.Format("param {0}, LTE test {1}, val {2}", param, isLessThanEqualTest, valTest);
-        }
-    }
+		public override string ToString()
+		{
+			return string.Format("{0} <= {1}", param, valTest);
+		}
+	}
 }
