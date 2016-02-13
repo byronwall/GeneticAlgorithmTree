@@ -66,7 +66,7 @@
         	this.txt_dataFile.Name = "txt_dataFile";
         	this.txt_dataFile.Size = new System.Drawing.Size(434, 20);
         	this.txt_dataFile.TabIndex = 2;
-        	this.txt_dataFile.Text = "C:\\projects\\gene-tree\\GeneTree\\bin\\Debug\\data\\prudential\\train.csv";
+        	this.txt_dataFile.Text = "C:\\projects\\gene-tree\\GeneTree\\bin\\Debug\\data\\prudential\\train-no-id.csv";
         	// 
         	// label1
         	// 

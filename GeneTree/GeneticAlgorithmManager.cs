@@ -24,45 +24,29 @@ namespace GeneTree
 			}
 		}
 		
-		//class will do all of the heavy lifting for the GA
 		private List<Tree> CreateRandomPoolOfTrees(int size)
 		{
-			//create a number of random trees and report results from all of them
-			var results = new List<Tree>();
+			var trees = new List<Tree>();
 			for (int i = 0; i < size; i++)
 			{
-				results.Add(CreateRandomTree());
+				trees.Add(CreateRandomTree());
 			}
-			return results;
+			return trees;
 		}
 
-		/// <summary>
-		/// create a number of random trees and report results from all of them
-		/// </summary>
-		/// <param name="trees"></param>
-		/// <returns></returns>
 		private List<Tree> ProcessPoolOfTrees(IEnumerable<Tree> trees, int generation)
 		{
 			List<Tree> keeps = new List<Tree>();
 			
 			double prob_to_keep_data = 0.02;
 			
-			prob_to_keep_data *= (generation % 10 == 0) ? 10 : 1;
+			dataPointMgr.UpdateSubsetOfDatapoints(prob_to_keep_data, rando);
 			
-			var dataPoints = dataPointMgr.GetSubsetOfDatapoints(0.02, rando).ToList();
+			Trace.WriteLine("point count: " + dataPointMgr._pointsToTest.Count);
 			
 			foreach (var tree in trees)
 			{				
-				ConfusionMatrix cm = new ConfusionMatrix(dataPointMgr.classes.Count());
-				
-				int correct = tree.ProcessDataThroughTree(dataPoints, cm);
-				
-				//Trace.WriteLine(cm);
-				
-				
-				double ratio = 1.0 * correct / dataPoints.Count;
-				
-				//TODO improve the hueristic for evaluation				
+				ConfusionMatrix cm = tree.ProcessDataThroughTree(dataPointMgr);				
 				double score = cm.GetKappa();
 				
 				//TODO improve override for non improving score
@@ -79,16 +63,48 @@ namespace GeneTree
 		}
 
 		//TODO create a GeneticOptions and move these options over to it
-		int populationSize = 2000;
-		int generations = 1000;
+		int populationSize = 200;
+		int generations = 10;
 		int max_node_count_for_new_tree = 40;
-			
-		public void ProcessTheNextGeneration()
+		
+		public void CreatePoolOfGoodTrees()
 		{
-			//TODO move the processing code into a GeneticOperations class to handle it all		
+			int times_to_run = 10;
 			
-			//start with a list of trees and trim it down
+			List<Tree> theBest = new List<Tree>();
+			
+			for (int j = 0; j < times_to_run; j++)
+			{	
+				List<Tree> keepers = new List<Tree>();
+				populationSize = 1000;
+				
+				for (int run = 0; run < times_to_run; run++)
+				{
+					keepers.AddRange(ProcessTheNextGeneration());
+				}
+			
+				populationSize *= 10;
+				generations = 25;
+			
+				theBest.AddRange(ProcessTheNextGeneration(keepers));
+			}
+			
+			populationSize *= 10;
+			generations = 25;
+			
+			ProcessTheNextGeneration(theBest);
+		}
+		
+		public List<Tree> ProcessTheNextGeneration()
+		{
 			var starter = CreateRandomPoolOfTrees(populationSize);
+			
+			return ProcessTheNextGeneration(starter);
+		}
+		
+		public List<Tree> ProcessTheNextGeneration(List<Tree> starter)
+		{
+			//TODO move the processing code into a GeneticOperations class to handle it all			
 			starter = ProcessPoolOfTrees(starter, 1);
 			
 			//TODO add a step to check for "convergence" and stop iterating
@@ -188,7 +204,7 @@ namespace GeneTree
 						//TODO allow for the value to be modifying (add/subtract/etc. to make smaller changes)				
 						if (node1_copy.IsTerminal)
 						{
-							node1_copy.Classification = dataPointMgr.classes[rando.Next(dataPointMgr.classes.Length)];
+							node1_copy.Classification = dataPointMgr.GetRandomClassification(rando);
 							tree1_copy._source = "new class";
 						}
 						else
@@ -235,6 +251,8 @@ namespace GeneTree
 			//TODO add a step at the end to verify the results with a hold out data set
 			//TODO add the ability to use the best tree for prediction and generate a results file w/ the predictions
 			OnProgressUpdated(100);
+			
+			return starter;
 		}
 
 		public void LoadDataFile(string csv_path, string config_path)
@@ -271,8 +289,7 @@ namespace GeneTree
 			}
 			if (node.IsTerminal)
 			{
-				//TODO move this random class picking somewhere else
-				node.Classification = dataPointMgr.classes[rando.Next(dataPointMgr.classes.Length)];
+				node.Classification = dataPointMgr.GetRandomClassification(rando);
 			}
 			else
 			{

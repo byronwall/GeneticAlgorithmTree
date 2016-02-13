@@ -66,17 +66,14 @@ namespace GeneTree
 			return TraverseData(_root, point, matrix);
 		}
 		
-		public int ProcessDataThroughTree(IEnumerable<DataPoint> dataPoints, ConfusionMatrix matrix)
+		public ConfusionMatrix ProcessDataThroughTree(DataPointManager dataPointMgr)
 		{
-			int correct = 0;
-			foreach (var dataPoint in dataPoints)
+			ConfusionMatrix matrix = new ConfusionMatrix(dataPointMgr.classes.Length);
+			foreach (var dataPoint in dataPointMgr._pointsToTest)
 			{
-				if (TraverseData(dataPoint, matrix))
-				{
-					correct++;		
-				}
+				TraverseData(dataPoint, matrix);
 			}			
-			return correct;
+			return matrix;;
 		}
 
 		public bool TraverseData(TreeNode node, DataPoint point, ConfusionMatrix matrix)

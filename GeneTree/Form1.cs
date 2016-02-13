@@ -16,7 +16,7 @@ namespace GeneTree
 
 		void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
-			ga_mgr.ProcessTheNextGeneration();
+			ga_mgr.CreatePoolOfGoodTrees();
 		}
 
 		void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)

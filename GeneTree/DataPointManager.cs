@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace GeneTree
 {
-	class DataPointManager
+	public class DataPointManager
 	{
 		public double[] classes;
 		
@@ -25,16 +25,25 @@ namespace GeneTree
 			}
 		}
 		
-		public IEnumerable<DataPoint> GetSubsetOfDatapoints(double fractionToKeep, Random rando)
+		public double GetRandomClassification(Random rando)
+		{
+			return classes[rando.Next(classes.Length)];
+		}
+
+		public List<DataPoint> _pointsToTest = new List<DataPoint>();
+		
+		public void UpdateSubsetOfDatapoints(double fractionToKeep, Random rando)
 		{
 			//quick trap to force fraction
 			fractionToKeep = Math.Min(Math.Max(fractionToKeep, 0), 1);
+			
+			_pointsToTest.Clear();
 			
 			foreach (var dataPoint in _dataPoints)
 			{
 				if (rando.NextDouble() < fractionToKeep)
 				{
-					yield return dataPoint;
+					_pointsToTest.Add(dataPoint);
 				}
 			}
 		}
@@ -75,7 +84,8 @@ namespace GeneTree
 			//TODO get rid of this method.  it does not seem necessary
 			classes = _dataPoints.GroupBy(x => x._classification._value).Select(x => x.Key).ToArray();
 			
-			foreach (var _class in _dataPoints.GroupBy(x => x._classification._value)) {
+			foreach (var _class in _dataPoints.GroupBy(x => x._classification._value))
+			{
 				
 			} 
 		}

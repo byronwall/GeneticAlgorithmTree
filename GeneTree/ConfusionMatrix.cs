@@ -20,7 +20,8 @@ namespace GeneTree
 			_values = new int[size, size];
 		}
 		
-		public void AddItem(int row, int column){
+		public void AddItem(int row, int column)
+		{
 			_values[row, column]++;
 			_count++;
 		}
@@ -43,30 +44,32 @@ namespace GeneTree
 			return sb.ToString();
 		}
 		
-		public double GetObservedAccuracy(){
+		public double GetObservedAccuracy()
+		{
 			int correct = 0;
-			for (int i = 0; i < _size; i++) {
+			for (int i = 0; i < _size; i++)
+			{
 				correct += _values[i, i];
 			}
 			
 			return 1.0 * correct / _count;
 		}
-		public double GetExpectedAccuracy(){
+		public double GetExpectedAccuracy()
+		{
 			int innerSum = 0;
-			for (int i = 0; i < _size; i++) {
-				
+			for (int i = 0; i < _size; i++)
+			{
 				int rowTotal = 0;
-				int colTotal =0;
-				
-				for (int j = 0; j < _size; j++) {
-					//row total
+				int colTotal = 0;
+				for (int j = 0; j < _size; j++)
+				{
 					rowTotal += _values[i, j];
 					colTotal += _values[j, i];
 				}
 				
 				innerSum += rowTotal * colTotal;
 			}
-			return 1.0 * innerSum / Math.Pow(_count,2);
+			return 1.0 * innerSum / Math.Pow(_count, 2);
 		}
 		public double GetKappa()
 		{
@@ -74,7 +77,7 @@ namespace GeneTree
 			double exp_acc = GetExpectedAccuracy();
 			
 			return (obs_acc - exp_acc) / (1 - exp_acc);
-		}	
+		}
 	}
 }
 

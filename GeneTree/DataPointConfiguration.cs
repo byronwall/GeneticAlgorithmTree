@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GeneTree
 {
-	class DataPointConfiguration
+	public class DataPointConfiguration
 	{
 		public Dictionary<string, DataColumn.DataValueTypes> _types = new Dictionary<string, DataColumn.DataValueTypes>();
 
