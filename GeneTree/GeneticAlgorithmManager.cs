@@ -69,28 +69,31 @@ namespace GeneTree
 		
 		public void CreatePoolOfGoodTrees()
 		{
-			int times_to_run = 10;
+			int inner_run = 10;
+			int outer_run = 3;
 			
 			List<Tree> theBest = new List<Tree>();
 			
-			for (int j = 0; j < times_to_run; j++)
+			for (int j = 0; j < outer_run; j++)
 			{	
 				List<Tree> keepers = new List<Tree>();
-				populationSize = 1000;
 				
-				for (int run = 0; run < times_to_run; run++)
-				{
+				populationSize = 500;
+				generations = 10;
+				
+				for (int run = 0; run < inner_run; run++)
+				{					
 					keepers.AddRange(ProcessTheNextGeneration());
 				}
 			
-				populationSize *= 10;
-				generations = 25;
+				populationSize *= inner_run;
+				generations = 20;
 			
 				theBest.AddRange(ProcessTheNextGeneration(keepers));
 			}
 			
-			populationSize *= 10;
-			generations = 25;
+			populationSize *= outer_run;
+			generations = 40;
 			
 			ProcessTheNextGeneration(theBest);
 		}
@@ -209,17 +212,21 @@ namespace GeneTree
 						}
 						else
 						{
-							var test = node1_copy.Test;							
-							tree1_copy._source = "new test value";
+							node1_copy.Test = TreeTest.TreeTestFactory(dataPointMgr, rando);
+								
+							tree1_copy._source = "new test";
 							
-							if (rando.NextDouble() < 0.5)
-							{
-								//change param test
-								test.param = rando.Next(dataPointMgr.DataColumnCount);
-								tree1_copy._source = "new param";
-							}
+							//TODO improve this part to allow for value changing again, doing a quick fix to make this work
 							
-							test.valTest = dataPointMgr._columns[test.param].GetTestValue(rando);
+							
+//							if (rando.NextDouble() < 0.5)
+//							{
+//								//change param test
+//								test.param = rando.Next(dataPointMgr.DataColumnCount);
+//								tree1_copy._source = "new param";
+//							}
+//							
+//							test.valTest = dataPointMgr._columns[test.param].GetTestValue(rando);
 						}
 						
 						newCreations.Add(tree1_copy);
@@ -267,11 +274,8 @@ namespace GeneTree
 
 		public TreeTest CreateRandomTest()
 		{
-			TreeTest testYes = new TreeTest();
-			testYes.param = rando.Next(dataPointMgr.DataColumnCount);
-			DataColumn column = dataPointMgr._columns[testYes.param];
-			testYes.valTest = column.GetTestValue(rando);
-			return testYes;
+			//TODO remove this method completely
+			return TreeTest.TreeTestFactory(dataPointMgr, rando);
 		}
 		public TreeNode CreateRandomNode(Tree tree, bool ShouldForceTerminal = false)
 		{

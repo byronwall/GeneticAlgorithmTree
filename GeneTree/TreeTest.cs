@@ -17,25 +17,55 @@ namespace GeneTree
 			var col_param = rando.Next(dataPointMgr.DataColumnCount);
 			DataColumn column = dataPointMgr._columns[col_param];
 			
+			double prob_missing_test = 0.3;
+			
+			if (column._hasMissingValues && rando.NextDouble() < prob_missing_test)
+			{
+				MissingTreeTest test = new MissingTreeTest();
+				test._param = col_param;					
+				return test;
+			}
+			
 			switch (column._type)
 			{
-				case DataColumn.DataValueTypes.NUMBER:
-					LessThanEqualTreeTest test = new LessThanEqualTreeTest();					
+				case DataColumn.DataValueTypes.NUMBER:					
+					LessThanEqualTreeTest test = new LessThanEqualTreeTest();
 					test.param = col_param;					
 					test.valTest = column.GetTestValue(rando);
 					return test;
-					
-					break;
 				case DataColumn.DataValueTypes.CATEGORY:
 					EqualTreeTest test_eq = new EqualTreeTest();					
 					test_eq._param = col_param;					
 					test_eq._valTest = column.GetTestValue(rando);
-					return test;
-					
-					break;
+					return test_eq;
 				default:
-					throw new ArgumentOutOfRangeException();
+					throw new ArgumentOutOfRangeException("column.Type");
 			}
+		}
+	}
+	
+	public class MissingTreeTest : TreeTest
+	{
+		public int _param;
+		
+		#region implemented abstract members of TreeTest
+		public override TreeTest Copy()
+		{
+			var test_copy = new MissingTreeTest();
+			
+			test_copy._param = this._param;
+			
+			return test_copy;
+		}
+		public override bool isTrueTest(DataPoint point)
+		{
+			return point._data[_param]._isMissing;
+		}
+		#endregion
+		
+		public override string ToString()
+		{
+			return string.Format("{0} missing", _param);
 		}
 	}
 	
@@ -47,7 +77,12 @@ namespace GeneTree
 		#region implemented abstract members of TreeTest
 		public override TreeTest Copy()
 		{
-			throw new NotImplementedException();
+			var test_copy = new EqualTreeTest();
+			
+			test_copy._param = this._param;
+			test_copy._valTest = this._valTest;
+			
+			return test_copy;
 		}
 		public override bool isTrueTest(DataPoint point)
 		{
@@ -57,7 +92,7 @@ namespace GeneTree
 		
 		public override string ToString()
 		{
-			return string.Format("{0} == {1}", param, valTest);
+			return string.Format("{0} == {1}", _param, _valTest);
 		}
 	}
 	

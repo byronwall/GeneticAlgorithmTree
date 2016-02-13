@@ -37,10 +37,10 @@ namespace GeneTree
 				{
 				//TODO abstract this code into multiple classes						
 					case DataColumn.DataValueTypes.NUMBER:					
-						
-						if (!double.TryParse(value, out dv._value))
+						if (value == string.Empty || !double.TryParse(value, out dv._value))
 						{
 							dv._isMissing = true;
+							columns[i]._hasMissingValues = true;
 						}						
 						
 						if (isClassification)
@@ -55,6 +55,13 @@ namespace GeneTree
 						break;
 					case DataColumn.DataValueTypes.CATEGORY:				
 						//TODO add a check here for a missing value, String.empty
+						
+						if (value == string.Empty)
+						{
+							dv._isMissing = true;
+							columns[i]._hasMissingValues = true;
+						}
+						
 						dv._value = columns[i]._codebook.GetOrAddValue(value);
 						
 						if (!isClassification)
