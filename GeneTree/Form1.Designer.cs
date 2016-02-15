@@ -42,7 +42,6 @@
         	this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         	this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         	this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-        	this.menu_flushTrace = new System.Windows.Forms.ToolStripMenuItem();
         	this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         	this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         	this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -167,23 +166,15 @@
         	// toolsToolStripMenuItem
         	// 
         	this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-			this.menu_flushTrace,
 			this.optionsToolStripMenuItem});
         	this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
         	this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
         	this.toolsToolStripMenuItem.Text = "&Tools";
         	// 
-        	// menu_flushTrace
-        	// 
-        	this.menu_flushTrace.Name = "menu_flushTrace";
-        	this.menu_flushTrace.Size = new System.Drawing.Size(133, 22);
-        	this.menu_flushTrace.Text = "Flush Trace";
-        	this.menu_flushTrace.Click += new System.EventHandler(this.Menu_flushTraceClick);
-        	// 
         	// optionsToolStripMenuItem
         	// 
         	this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-        	this.optionsToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
+        	this.optionsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
         	this.optionsToolStripMenuItem.Text = "&Options";
         	// 
         	// helpToolStripMenuItem
@@ -218,7 +209,6 @@
         	this.MainMenuStrip = this.menuStrip1;
         	this.Name = "Form1";
         	this.Text = "GeneTree";
-        	this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1FormClosing);
         	this.statusStrip1.ResumeLayout(false);
         	this.statusStrip1.PerformLayout();
         	this.menuStrip1.ResumeLayout(false);
@@ -247,7 +237,6 @@
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem menu_flushTrace;
     }
 }
 

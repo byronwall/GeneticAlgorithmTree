@@ -25,17 +25,32 @@ namespace GeneTree
 		public Tree _tree;
 		
 		public bool _parentTrue;
+		
+		public int _traverseCount;
 
 		public override string ToString()
 		{
+			string output = "";
+			
 			if (IsTerminal)
 			{
-				return string.Format("TERM to {0}", Classification.ToString());
+				if (Classification == -1)
+				{
+					output = string.Format("NO CLASS");	
+				}
+				else
+				{
+				
+					output = string.Format("TERM to {0}", Classification);				
+				}
+				
 			}
 			else
 			{
-				return Test.ToString();
+				output = Test.ToString();
 			}
+			
+			return output + string.Format(" ({0})", this._traverseCount);
 		}
 		
 		public TreeNode CopyNonLinkingData()

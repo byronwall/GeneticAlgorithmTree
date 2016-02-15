@@ -27,6 +27,13 @@ namespace GeneTree
 		
 		public double GetRandomClassification(Random rando)
 		{
+			double prob_of_no_class = 0.2;
+			
+			if (rando.NextDouble() < prob_of_no_class)
+			{
+				return -1;
+			}
+			
 			return classes[rando.Next(classes.Length)];
 		}
 

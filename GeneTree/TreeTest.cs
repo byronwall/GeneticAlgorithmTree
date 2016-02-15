@@ -14,6 +14,8 @@ namespace GeneTree
 		
 		public static TreeTest TreeTestFactory(DataPointManager dataPointMgr, Random rando)
 		{			
+			//TODO clean up this mess once the DataColumns quit using the TYPE part
+			
 			var col_param = rando.Next(dataPointMgr.DataColumnCount);
 			DataColumn column = dataPointMgr._columns[col_param];
 			
@@ -39,7 +41,7 @@ namespace GeneTree
 					test_eq._valTest = column.GetTestValue(rando);
 					return test_eq;
 				default:
-					throw new ArgumentOutOfRangeException("column.Type");
+					throw new ArgumentOutOfRangeException();
 			}
 		}
 	}
@@ -71,6 +73,8 @@ namespace GeneTree
 	
 	public class EqualTreeTest : TreeTest
 	{
+		//TODO create a test for doing group subset or a multi group test, ensure that not all groups end up in it, N-1 max
+		
 		public double _valTest;
 		public int _param;
 		

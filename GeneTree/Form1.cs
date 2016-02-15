@@ -24,12 +24,13 @@ namespace GeneTree
 			prog_ongoing.Value = e.ProgressPercentage;
 		}
 		
-		void bw_UpdateProgress(int percent)
+		void bw_UpdateProgress(GeneticAlgorithmUpdate data)
 		{
 			if (bw != null && bw.WorkerReportsProgress)
 			{
-				bw.ReportProgress(percent);
+				bw.ReportProgress(data.progress);
 			}
+			Debug.WriteLine(data.status);
 		}
 
 		void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -48,7 +49,7 @@ namespace GeneTree
 			bw.RunWorkerCompleted += bw_RunWorkerCompleted;
 		}
 
-		void ga_mgr_ProgressUpdated(object sender, EventArg<int> e)
+		void ga_mgr_ProgressUpdated(object sender, EventArg<GeneticAlgorithmUpdate> e)
 		{
 			bw_UpdateProgress(e.Data);
 		}
@@ -59,24 +60,16 @@ namespace GeneTree
 			InitBackgroundWorker();
 						
 			ga_mgr.ProgressUpdated += ga_mgr_ProgressUpdated;
-			
-
-			Trace.Listeners.Clear();
-
-			TextWriterTraceListener twtl = new TextWriterTraceListener(string.Format("trace files/trace {0}.txt", DateTime.Now.Ticks));
-			twtl.Name = "TextLogger";
-			twtl.TraceOutputOptions = TraceOptions.ThreadId | TraceOptions.DateTime | TraceOptions.Timestamp;
-			
-			Trace.Listeners.Add(twtl);
-			Trace.AutoFlush = true;
-			
 		}
 		
 		BackgroundWorker bw = new BackgroundWorker();
 
 		private void btnPoolRando_Click(object sender, EventArgs e)
 		{
+			btnPoolRando.Enabled = false;
 			bw.RunWorkerAsync();
+			
+			btnPoolRando.Enabled = true;
 		}
 		
 		DataPointConfiguration config;
@@ -95,6 +88,9 @@ namespace GeneTree
 		
 		void Btn_loadWithConfigClick(object sender, EventArgs e)
 		{
+			//TODO find a better way to prevent double click
+			btn_loadWithConfig.Enabled = false;
+			
 			ga_mgr.LoadDataFile(txt_dataFile.Text, txt_configFile.Text);
 		}
 		void Button1Click(object sender, EventArgs e)
@@ -103,17 +99,11 @@ namespace GeneTree
 			txt_dataFile.Text = @"C:\projects\gene-tree\GeneTree\bin\Debug\data\iris\iris.data";
 			txt_configFile.Text = @"C:\projects\gene-tree\GeneTree\bin\Debug\data\iris\iris_config.txt";
 		}
-		void Form1FormClosing(object sender, FormClosingEventArgs e)
-		{
-			Trace.Flush();
-		}
+		
 		void ExitToolStripMenuItemClick(object sender, EventArgs e)
 		{
 			this.Close();
 		}
-		void Menu_flushTraceClick(object sender, EventArgs e)
-		{
-			Trace.Flush();
-		}
+		
 	}
 }

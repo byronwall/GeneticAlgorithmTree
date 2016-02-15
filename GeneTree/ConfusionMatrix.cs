@@ -16,6 +16,7 @@ namespace GeneTree
 
 		public ConfusionMatrix(int size)
 		{
+			//TODO allow this matrix to detect when no classifications were made for an entire class
 			this._size = size;
 			_values = new int[size, size];
 		}

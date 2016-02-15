@@ -17,6 +17,8 @@ namespace GeneTree
 		
 		//TODO remove this for better tracking somewhere else
 		public string _source;
+		
+		public bool _isDirty = true;
 
 		public Tree Copy()
 		{
@@ -68,22 +70,36 @@ namespace GeneTree
 		
 		public ConfusionMatrix ProcessDataThroughTree(DataPointManager dataPointMgr)
 		{
+			//clear out the node counts
+			this._nodes.ForEach(c => c._traverseCount = 0);
+			
+			
 			ConfusionMatrix matrix = new ConfusionMatrix(dataPointMgr.classes.Length);
 			foreach (var dataPoint in dataPointMgr._pointsToTest)
 			{
 				TraverseData(dataPoint, matrix);
 			}			
-			return matrix;;
+			return matrix;
 		}
 
 		public bool TraverseData(TreeNode node, DataPoint point, ConfusionMatrix matrix)
 		{
+			node._traverseCount++;
+			
 			//start at root, test if correct
 			if (node.IsTerminal)
 			{
-				//these are known to be ints since they are classes from a Codebook
-				matrix.AddItem((int)point._classification._value, (int)node.Classification);
-				return node.Classification == point._classification._value;
+				//-1 will be the no classificaiton route for now
+				if (node.Classification == -1)
+				{
+					return false;
+				}
+				else
+				{
+					//these are known to be ints since they are classes from a Codebook
+					matrix.AddItem((int)point._classification._value, (int)node.Classification);
+					return true;
+				}
 			}
 			else
 			{
@@ -105,34 +121,43 @@ namespace GeneTree
 		{
 			StringBuilder sb = new StringBuilder();
 
-			Stack<TreeNode> nodes = new Stack<TreeNode>();
-			nodes.Push(_root);
-
+			Stack<Tuple<TreeNode, int>> nodes = new Stack<Tuple<TreeNode, int>>();
+			nodes.Push(new Tuple<TreeNode, int>(_root, 0));
+			
 			while (nodes.Count > 0)
 			{
-				var node = nodes.Pop();
-				sb.AppendLine(node.ToString());
+				var item = nodes.Pop();
+				var node = item.Item1;
+				
+				sb.AppendLine();
+				
+				for (int i = 0; i < item.Item2; i++)
+				{
+					sb.Append("  ");
+				}
+				sb.Append(node.ToString());
 
 				if (!node.IsTerminal)
 				{
-					nodes.Push(node._trueNode);
-					nodes.Push(node._falseNode);
+					nodes.Push(new Tuple<TreeNode, int>(node._trueNode, item.Item2 + 1));
+					nodes.Push(new Tuple<TreeNode, int>(node._falseNode, item.Item2 + 1));
 				}
 			}
 			return sb.ToString();
 		}
+		//TODO consider removing the Hash and Equals, not sure there are any duplicates
 		public override int GetHashCode()
 		{
 			int hashCode = 0;
-				unchecked
-				{
-					if (_root != null)
-						hashCode += 1000000007 * _root.GetHashCode();
-					if (_nodes != null)
-						hashCode += 1000000009 * _nodes.GetHashCode();
-					hashCode += 1000000021 * _prevScore.GetHashCode();
-				}
-					return hashCode;
+			unchecked
+			{
+				if (_root != null)
+					hashCode += 1000000007 * _root.GetHashCode();
+				if (_nodes != null)
+					hashCode += 1000000009 * _nodes.GetHashCode();
+				hashCode += 1000000021 * _prevScore.GetHashCode();
+			}
+			return hashCode;
 		}
 
 		public override bool Equals(object obj)
