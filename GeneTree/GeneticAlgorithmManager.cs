@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+
 namespace GeneTree
 {
 	
@@ -14,6 +15,15 @@ namespace GeneTree
 	{
 		public int progress;
 		public string status;
+	}
+	
+	public class GeneticAlgorithmOptions
+	{
+		//TODO fill this class out with options and then create a PropertyGrid to change options
+	}
+	
+	public class GeneticAlgorithmRunResults{
+		//TODO fill this class out with the results from an evaluation, should allow for a better metric evaluation
 	}
 	
 	public class GeneticAlgorithmManager
@@ -55,9 +65,10 @@ namespace GeneTree
 			foreach (var tree in trees)
 			{
 				ConfusionMatrix cm = tree.ProcessDataThroughTree(dataPointMgr);
-				double score = cm.GetKappa();
 				
-				//TODO add a check here to see how much data was processed/skipped
+				//TODO improve this score to consider # classified
+				//TODO create a separate class to handle GA metrics
+				double score = cm.GetKappa();
 				
 				//TODO improve override for non improving score
 				if (!tree._isDirty || score > tree._prevScore || rando.NextDouble() > 0.95)
@@ -78,7 +89,7 @@ namespace GeneTree
 		double prob_ops_change = 0.9;
 		double prob_ops_delete = 0.4;
 		double prob_ops_swap = 0.2;
-		double prob_to_keep_data = 0.10;
+		double prob_to_keep_data = 1;
 		
 		int generations = 10;
 		int max_node_count_for_new_tree = 40;
@@ -90,6 +101,8 @@ namespace GeneTree
 			int outer_run = 1;
 			
 			List<Tree> theBest = new List<Tree>();
+			
+			var new_dir = Directory.CreateDirectory("tree outputs\\" + DateTime.Now.Ticks);
 			
 			//HACK: data update only at start to ensure that trees are improving on same data
 			dataPointMgr.UpdateSubsetOfDatapoints(prob_to_keep_data, rando);
@@ -103,7 +116,9 @@ namespace GeneTree
 				
 				for (int run = 0; run < inner_run; run++)
 				{
-					keepers.AddRange(ProcessTheNextGeneration());
+					var trees = ProcessTheNextGeneration();					
+					trees[0].WriteToXmlFile(Path.Combine(new_dir.FullName, string.Format("{0} - {1}.xml", j, run)));					
+					keepers.AddRange(trees);
 				}
 				
 				populationSize *= inner_run;
@@ -128,7 +143,6 @@ namespace GeneTree
 		public List<Tree> ProcessTheNextGeneration(List<Tree> starter)
 		{
 			//TODO move the processing code into a GeneticOperations class to handle it all
-			
 			
 			//TODO add a step to check for "convergence" and stop iterating
 			for (int generationNumber = 0; generationNumber < generations; generationNumber++)
@@ -247,7 +261,6 @@ namespace GeneTree
 						
 						newCreations.Add(tree);
 					}
-					
 				}
 				
 				//moves things to the master list
@@ -284,8 +297,6 @@ namespace GeneTree
 			TreeNode node = new TreeNode();
 			
 			tree.AddNodeWithoutChildren(node);
-			
-			//TODO take this and other probabilities and move them somewhere central
 			
 			node.IsTerminal = rando.NextDouble() > prob_node_terminal;
 			

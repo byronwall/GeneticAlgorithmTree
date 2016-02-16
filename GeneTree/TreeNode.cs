@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 
 namespace GeneTree
 {
+	[Serializable]	
 	public class TreeNode
 	{
 		public TreeTest Test;
@@ -20,14 +23,17 @@ namespace GeneTree
 		
 		public TreeNode _trueNode;
 		public TreeNode _falseNode;
+		
+		[XmlIgnore]
 		public TreeNode _parent;
 		
+		[XmlIgnore]
 		public Tree _tree;
 		
 		public bool _parentTrue;
 		
 		public int _traverseCount;
-
+		
 		public override string ToString()
 		{
 			string output = "";

@@ -6,20 +6,25 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 
 namespace GeneTree
 {
+	[Serializable]
 	public class Tree
 	{
 		public TreeNode _root;
+
+		[XmlIgnore]
 		public List<TreeNode> _nodes = new List<TreeNode>();
+
 		public double _prevScore = double.MinValue;
 		
 		//TODO remove this for better tracking somewhere else
 		public string _source;
 		
 		public bool _isDirty = true;
-
+		
 		public Tree Copy()
 		{
 			//create a new tree
@@ -70,9 +75,10 @@ namespace GeneTree
 		
 		public ConfusionMatrix ProcessDataThroughTree(DataPointManager dataPointMgr)
 		{
+			//TODO this should return a full GeneticAlgorithmRunResults which can be processed
+			
 			//clear out the node counts
 			this._nodes.ForEach(c => c._traverseCount = 0);
-			
 			
 			ConfusionMatrix matrix = new ConfusionMatrix(dataPointMgr.classes.Length);
 			foreach (var dataPoint in dataPointMgr._pointsToTest)
@@ -166,6 +172,73 @@ namespace GeneTree
 			if (other == null)
 				return false;
 			return this.ToString() == other.ToString();
+		}
+		
+		public void WriteToXmlFile(string filePath)
+		{
+			TextWriter writer = null;
+			try
+			{
+				var serializer = new XmlSerializer(this.GetType());
+				writer = new StreamWriter(filePath);
+				serializer.Serialize(writer, this);
+			}
+			finally
+			{
+				if (writer != null)
+				{
+					writer.Close();
+				}
+			}
+		}
+		/// <summary>
+		/// Reads a Tree in from an XML file.  Has to process the nodes and hierarchy after the fact to avoid circular references.
+		/// </summary>
+		/// <param name="filePath">location of XML file</param>
+		/// <returns>a fully assembled Tree</returns>
+		public static Tree ReadFromXmlFile(string filePath)
+		{
+			TextReader reader = null;
+			Tree tree_read = null;
+			try
+			{
+				var serializer = new XmlSerializer(typeof(Tree));
+				reader = new StreamReader(filePath);
+				tree_read = (Tree)serializer.Deserialize(reader);
+				
+				if (tree_read != null)
+				{
+					var nodes_to_process = new Stack<Tuple<TreeNode, TreeNode>>();
+					nodes_to_process.Push(Tuple.Create(tree_read._root, (TreeNode)null));
+				
+					while (nodes_to_process.Count > 0)
+					{
+						var node_parent = nodes_to_process.Pop();
+					
+						var node = node_parent.Item1;
+						tree_read._nodes.Add(node);
+						node._parent = node_parent.Item2;					
+						node._tree = tree_read;
+					
+						if (!node.IsTerminal)
+						{
+							nodes_to_process.Push(Tuple.Create(node._trueNode, node));
+							nodes_to_process.Push(Tuple.Create(node._falseNode, node));
+						}
+					}
+				}
+				else
+				{
+					throw new Exception("something went wrong reading the tree back");
+				}
+			
+				return tree_read;
+			}
+			finally
+			{
+				if (reader != null)
+					reader.Close();
+			}
 		}
 	}
 	

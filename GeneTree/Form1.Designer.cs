@@ -45,6 +45,7 @@
         	this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         	this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         	this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+        	this.txt_status = new System.Windows.Forms.TextBox();
         	this.statusStrip1.SuspendLayout();
         	this.menuStrip1.SuspendLayout();
         	this.SuspendLayout();
@@ -63,7 +64,7 @@
         	// 
         	this.txt_dataFile.Location = new System.Drawing.Point(132, 173);
         	this.txt_dataFile.Name = "txt_dataFile";
-        	this.txt_dataFile.Size = new System.Drawing.Size(434, 20);
+        	this.txt_dataFile.Size = new System.Drawing.Size(266, 20);
         	this.txt_dataFile.TabIndex = 2;
         	this.txt_dataFile.Text = "C:\\projects\\gene-tree\\GeneTree\\bin\\Debug\\data\\prudential\\train-no-id.csv";
         	// 
@@ -87,7 +88,7 @@
         	// 
         	this.txt_configFile.Location = new System.Drawing.Point(132, 234);
         	this.txt_configFile.Name = "txt_configFile";
-        	this.txt_configFile.Size = new System.Drawing.Size(434, 20);
+        	this.txt_configFile.Size = new System.Drawing.Size(266, 20);
         	this.txt_configFile.TabIndex = 4;
         	this.txt_configFile.Text = "C:\\projects\\gene-tree\\GeneTree\\bin\\Debug\\data\\prudential\\train_config.txt";
         	// 
@@ -127,7 +128,7 @@
 			this.prog_ongoing});
         	this.statusStrip1.Location = new System.Drawing.Point(0, 399);
         	this.statusStrip1.Name = "statusStrip1";
-        	this.statusStrip1.Size = new System.Drawing.Size(621, 22);
+        	this.statusStrip1.Size = new System.Drawing.Size(952, 22);
         	this.statusStrip1.TabIndex = 9;
         	this.statusStrip1.Text = "statusStrip1";
         	// 
@@ -144,7 +145,7 @@
 			this.helpToolStripMenuItem});
         	this.menuStrip1.Location = new System.Drawing.Point(0, 0);
         	this.menuStrip1.Name = "menuStrip1";
-        	this.menuStrip1.Size = new System.Drawing.Size(621, 24);
+        	this.menuStrip1.Size = new System.Drawing.Size(952, 24);
         	this.menuStrip1.TabIndex = 10;
         	this.menuStrip1.Text = "menuStrip1";
         	// 
@@ -174,7 +175,7 @@
         	// optionsToolStripMenuItem
         	// 
         	this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-        	this.optionsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+        	this.optionsToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
         	this.optionsToolStripMenuItem.Text = "&Options";
         	// 
         	// helpToolStripMenuItem
@@ -191,11 +192,21 @@
         	this.aboutToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
         	this.aboutToolStripMenuItem.Text = "&About...";
         	// 
+        	// txt_status
+        	// 
+        	this.txt_status.Location = new System.Drawing.Point(442, 39);
+        	this.txt_status.Multiline = true;
+        	this.txt_status.Name = "txt_status";
+        	this.txt_status.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+        	this.txt_status.Size = new System.Drawing.Size(480, 339);
+        	this.txt_status.TabIndex = 11;
+        	// 
         	// Form1
         	// 
         	this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
         	this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        	this.ClientSize = new System.Drawing.Size(621, 421);
+        	this.ClientSize = new System.Drawing.Size(952, 421);
+        	this.Controls.Add(this.txt_status);
         	this.Controls.Add(this.statusStrip1);
         	this.Controls.Add(this.menuStrip1);
         	this.Controls.Add(this.button1);
@@ -237,6 +248,7 @@
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.TextBox txt_status;
     }
 }
 

@@ -4,9 +4,14 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace GeneTree
 {
+	[Serializable]
+	[XmlInclude(typeof(EqualTreeTest))]
+	[XmlInclude(typeof(LessThanEqualTreeTest))]
+	[XmlInclude(typeof(MissingTreeTest))]
 	public abstract class TreeTest
 	{
 		public abstract TreeTest Copy();
@@ -46,6 +51,7 @@ namespace GeneTree
 		}
 	}
 	
+	[Serializable]
 	public class MissingTreeTest : TreeTest
 	{
 		public int _param;
@@ -71,6 +77,7 @@ namespace GeneTree
 		}
 	}
 	
+	[Serializable]
 	public class EqualTreeTest : TreeTest
 	{
 		//TODO create a test for doing group subset or a multi group test, ensure that not all groups end up in it, N-1 max
@@ -100,6 +107,7 @@ namespace GeneTree
 		}
 	}
 	
+	[Serializable]
 	public class LessThanEqualTreeTest : TreeTest
 	{
 		public int param;

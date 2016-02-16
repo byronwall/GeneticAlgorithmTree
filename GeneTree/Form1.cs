@@ -13,6 +13,10 @@ namespace GeneTree
 	public partial class Form1 : Form
 	{
 		GeneticAlgorithmManager ga_mgr = new GeneticAlgorithmManager();
+		//HACK this is being passed around to get around Thread restrictions
+		GeneticAlgorithmUpdate last_status = null;
+		DataPointConfiguration config;
+		BackgroundWorker bw = new BackgroundWorker();
 
 		void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
@@ -22,10 +26,12 @@ namespace GeneTree
 		void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
 			prog_ongoing.Value = e.ProgressPercentage;
+			txt_status.Text = last_status.status;
 		}
 		
 		void bw_UpdateProgress(GeneticAlgorithmUpdate data)
 		{
+			last_status = data;
 			if (bw != null && bw.WorkerReportsProgress)
 			{
 				bw.ReportProgress(data.progress);
@@ -62,8 +68,6 @@ namespace GeneTree
 			ga_mgr.ProgressUpdated += ga_mgr_ProgressUpdated;
 		}
 		
-		BackgroundWorker bw = new BackgroundWorker();
-
 		private void btnPoolRando_Click(object sender, EventArgs e)
 		{
 			btnPoolRando.Enabled = false;
@@ -71,8 +75,6 @@ namespace GeneTree
 			
 			btnPoolRando.Enabled = true;
 		}
-		
-		DataPointConfiguration config;
 		
 		void Btn_configDefaultClick(object sender, EventArgs e)
 		{
@@ -85,7 +87,6 @@ namespace GeneTree
 			config = DataPointConfiguration.CreateDefaultFromFile(data_path);			
 			config.SaveToFile(Path.GetDirectoryName(data_path) + @"\" + Path.GetFileNameWithoutExtension(data_path) + "_config.txt");
 		}
-		
 		void Btn_loadWithConfigClick(object sender, EventArgs e)
 		{
 			//TODO find a better way to prevent double click
@@ -99,11 +100,9 @@ namespace GeneTree
 			txt_dataFile.Text = @"C:\projects\gene-tree\GeneTree\bin\Debug\data\iris\iris.data";
 			txt_configFile.Text = @"C:\projects\gene-tree\GeneTree\bin\Debug\data\iris\iris_config.txt";
 		}
-		
 		void ExitToolStripMenuItemClick(object sender, EventArgs e)
 		{
 			this.Close();
 		}
-		
 	}
 }
