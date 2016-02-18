@@ -18,7 +18,11 @@ namespace GeneTree
 		[XmlIgnore]
 		public List<TreeNode> _nodes = new List<TreeNode>();
 
-		public double _prevScore = double.MinValue;
+		[XmlIgnore]
+		public GeneticAlgorithmRunResults _prevResults;
+		
+		[XmlIgnore]
+		public GeneticAlgorithmRunResults _currentResults;
 		
 		//TODO remove this for better tracking somewhere else
 		public string _source;
@@ -31,19 +35,47 @@ namespace GeneTree
 			Tree new_tree = new Tree();
 			new_tree._root = this._root.ReturnFullyLinkedCopyOfSelf();			
 			new_tree.AddNodeWithChildren(new_tree._root);
-			new_tree._prevScore = this._prevScore;
+			new_tree._prevResults = this._prevResults;
 			
 			return new_tree;			
 		}
+		
+		public void RemoveZeroCountNodes()
+		{
+			Stack<TreeNode> nodes_to_process = new Stack<TreeNode>();
+			nodes_to_process.Push(_root);
+			
+			while (nodes_to_process.Count > 0)
+			{
+				TreeNode node = nodes_to_process.Pop();
+				
+				if (node._traverseCount == 0)
+				{
+					node.ResetNodeToNoClass();
+				}
+				else if (!node.IsTerminal)
+				{
+					nodes_to_process.Push(node._trueNode);
+					nodes_to_process.Push(node._falseNode);
+				}
+			}
+		}
+			
+
+		public void RemoveChildrenFromNode(TreeNode node)
+		{
+			if (!node.IsTerminal)
+			{
+				RemoveNodeWithChildren(node._trueNode);
+				RemoveNodeWithChildren(node._falseNode);
+			}
+		}
+
 		public void RemoveNodeWithChildren(TreeNode node)
 		{
 			_nodes.Remove(node);
 			
-			if (!node.IsTerminal)
-			{
-				RemoveNodeWithChildren(node._trueNode);
-				RemoveNodeWithChildren(node._falseNode);				
-			}
+			RemoveChildrenFromNode(node);
 		}
 		
 		public void AddRootToTree(TreeNode node)
@@ -68,12 +100,12 @@ namespace GeneTree
 				AddNodeWithChildren(node._falseNode);				
 			}
 		}
-		public bool TraverseData(DataPoint point, ConfusionMatrix matrix)
+		public bool TraverseData(DataPoint point, GeneticAlgorithmRunResults results)
 		{
-			return TraverseData(_root, point, matrix);
+			return TraverseData(_root, point, results);
 		}
 		
-		public ConfusionMatrix ProcessDataThroughTree(DataPointManager dataPointMgr)
+		public void ProcessDataThroughTree(DataPointManager dataPointMgr, GeneticAlgorithmRunResults results)
 		{
 			//TODO this should return a full GeneticAlgorithmRunResults which can be processed
 			
@@ -83,12 +115,15 @@ namespace GeneTree
 			ConfusionMatrix matrix = new ConfusionMatrix(dataPointMgr.classes.Length);
 			foreach (var dataPoint in dataPointMgr._pointsToTest)
 			{
-				TraverseData(dataPoint, matrix);
-			}			
-			return matrix;
+				results.count_allData++;
+				TraverseData(dataPoint, results);
+			}
+
+			//store the results for future use
+			_currentResults = results;			
 		}
 
-		public bool TraverseData(TreeNode node, DataPoint point, ConfusionMatrix matrix)
+		public bool TraverseData(TreeNode node, DataPoint point, GeneticAlgorithmRunResults results)
 		{
 			node._traverseCount++;
 			
@@ -96,14 +131,15 @@ namespace GeneTree
 			if (node.IsTerminal)
 			{
 				//-1 will be the no classificaiton route for now
-				if (node.Classification == -1)
-				{
+				if (node.Classification == -1.0)
+				{					
 					return false;
 				}
 				else
 				{
 					//these are known to be ints since they are classes from a Codebook
-					matrix.AddItem((int)point._classification._value, (int)node.Classification);
+					results.count_classedData++;
+					results._matrix.AddItem((int)point._classification._value, (int)node.Classification);
 					return true;
 				}
 			}
@@ -113,12 +149,12 @@ namespace GeneTree
 				if (node.Test.isTrueTest(point))
 				{
 					//0 will be yes
-					return TraverseData(node._trueNode, point, matrix);
+					return TraverseData(node._trueNode, point, results);
 				}
 				else
 				{
 					//1 will be no
-					return TraverseData(node._falseNode, point, matrix);
+					return TraverseData(node._falseNode, point, results);
 				}
 			}
 		}
@@ -161,7 +197,7 @@ namespace GeneTree
 					hashCode += 1000000007 * _root.GetHashCode();
 				if (_nodes != null)
 					hashCode += 1000000009 * _nodes.GetHashCode();
-				hashCode += 1000000021 * _prevScore.GetHashCode();
+				hashCode += 1000000021 * _prevResults.GetHashCode();
 			}
 			return hashCode;
 		}

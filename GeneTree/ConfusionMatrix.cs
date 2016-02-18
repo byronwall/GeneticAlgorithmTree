@@ -13,6 +13,7 @@ namespace GeneTree
 		public int[,] _values;
 		public int _size;
 		public int _count;
+		public int _columnsWithData;
 
 		public ConfusionMatrix(int size)
 		{
@@ -23,6 +24,8 @@ namespace GeneTree
 		
 		public void AddItem(int row, int column)
 		{
+			_isDirty = true;
+			
 			_values[row, column]++;
 			_count++;
 		}
@@ -30,23 +33,38 @@ namespace GeneTree
 		public override string ToString()
 		{
 			StringBuilder sb = new StringBuilder();
+			sb.AppendLine();
 			for (int i = 0; i < _size; i++)
 			{
 				for (int j = 0; j < _size; j++)
 				{
-					sb.Append(_values[i, j]);
+					
+					sb.Append(string.Format("{0,6}", _values[i, j]));
+					
+					if (i == j)
+					{
+						sb.Append("*");
+					}
+					
 					sb.Append("\t");
 				}
 				sb.Append("\r\n");
 			}
 			
 			sb.AppendLine(string.Format("obs: {0} \t exp: {1}", GetObservedAccuracy(), GetExpectedAccuracy()));
+			sb.AppendLine(string.Format("columns with data = {0}", _columnsWithData));
 			
 			return sb.ToString();
 		}
 		
+		private double _obsAccuracy;
+		private double _expAccuracy;
+		private double _kappa;
+		
+		private bool _isDirty = true;
+		
 		public double GetObservedAccuracy()
-		{
+		{			
 			int correct = 0;
 			for (int i = 0; i < _size; i++)
 			{
@@ -57,6 +75,8 @@ namespace GeneTree
 		}
 		public double GetExpectedAccuracy()
 		{
+			_columnsWithData = 0;
+			
 			int innerSum = 0;
 			for (int i = 0; i < _size; i++)
 			{
@@ -68,6 +88,10 @@ namespace GeneTree
 					colTotal += _values[j, i];
 				}
 				
+				if(colTotal > 0){
+					_columnsWithData++;
+				}
+				
 				innerSum += rowTotal * colTotal;
 			}
 			return 1.0 * innerSum / Math.Pow(_count, 2);
@@ -76,6 +100,9 @@ namespace GeneTree
 		{
 			double obs_acc = GetObservedAccuracy();
 			double exp_acc = GetExpectedAccuracy();
+			
+			//TODO implement dirty with a method to ProcessCalcs for the matrix
+			_isDirty = false;
 			
 			return (obs_acc - exp_acc) / (1 - exp_acc);
 		}

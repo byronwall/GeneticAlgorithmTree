@@ -40,7 +40,7 @@ namespace GeneTree
 			
 			if (IsTerminal)
 			{
-				if (Classification == -1)
+				if (Classification == -1.0)
 				{
 					output = string.Format("NO CLASS");	
 				}
@@ -96,6 +96,14 @@ namespace GeneTree
 			}
 			return self_copy;
 		}
+		public void ResetNodeToNoClass(){
+			//remove children, change node details
+			this._tree.RemoveChildrenFromNode(this);
+			
+			this.IsTerminal = true;
+			this.Classification = -1;
+		}
+		
 		public static void SwapNodesInTrees(TreeNode node1, TreeNode node2)
 		{
 			//TODO handle this better where the node to swap is the root, right now just exists with no change

@@ -14,7 +14,7 @@ namespace GeneTree
 	{
 		GeneticAlgorithmManager ga_mgr = new GeneticAlgorithmManager();
 		//HACK this is being passed around to get around Thread restrictions
-		GeneticAlgorithmUpdate last_status = null;
+		GeneticAlgorithmUpdateStatus last_status = new GeneticAlgorithmUpdateStatus();
 		DataPointConfiguration config;
 		BackgroundWorker bw = new BackgroundWorker();
 
@@ -25,11 +25,12 @@ namespace GeneTree
 
 		void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
-			prog_ongoing.Value = e.ProgressPercentage;
+			prog_ongoing.Value = Math.Max(Math.Min(e.ProgressPercentage, prog_ongoing.Maximum), prog_ongoing.Minimum);
 			txt_status.Text = last_status.status;
+			prop_gaOptions.Refresh();
 		}
 		
-		void bw_UpdateProgress(GeneticAlgorithmUpdate data)
+		void bw_UpdateProgress(GeneticAlgorithmUpdateStatus data)
 		{
 			last_status = data;
 			if (bw != null && bw.WorkerReportsProgress)
@@ -43,6 +44,7 @@ namespace GeneTree
 		{
 			if (e.Error != null)
 			{
+				Debug.Write(e.Error.ToString());
 				throw e.Error;
 			}
 		}
@@ -55,7 +57,7 @@ namespace GeneTree
 			bw.RunWorkerCompleted += bw_RunWorkerCompleted;
 		}
 
-		void ga_mgr_ProgressUpdated(object sender, EventArg<GeneticAlgorithmUpdate> e)
+		void ga_mgr_ProgressUpdated(object sender, EventArg<GeneticAlgorithmUpdateStatus> e)
 		{
 			bw_UpdateProgress(e.Data);
 		}
@@ -64,6 +66,9 @@ namespace GeneTree
 		{
 			InitializeComponent();			
 			InitBackgroundWorker();
+			
+			//set up the property grid
+			prop_gaOptions.SelectedObject = ga_mgr._gaOptions;
 						
 			ga_mgr.ProgressUpdated += ga_mgr_ProgressUpdated;
 		}

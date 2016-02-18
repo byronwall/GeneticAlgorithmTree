@@ -14,8 +14,14 @@ namespace GeneTree
 	[XmlInclude(typeof(MissingTreeTest))]
 	public abstract class TreeTest
 	{
+		public virtual bool CanChangeValue{ get { return false; } }
+		
 		public abstract TreeTest Copy();
 		public abstract bool isTrueTest(DataPoint point);
+		public virtual bool ChangeTestValue(GeneticAlgorithmManager mgr, Random rando)
+		{
+			return false;
+		}
 		
 		public static TreeTest TreeTestFactory(DataPointManager dataPointMgr, Random rando)
 		{			
@@ -133,6 +139,23 @@ namespace GeneTree
 		public override string ToString()
 		{
 			return string.Format("{0} <= {1}", param, valTest);
+		}
+		
+		public override bool ChangeTestValue(GeneticAlgorithmManager mgr, Random rando)
+		{
+			//try a simple percent test first
+			double change = (rando.NextDouble() * 2 - 1.0) * mgr._gaOptions.test_value_change;
+			
+			this.valTest += this.valTest * change;			
+			
+			return true;
+		}
+		public override bool CanChangeValue
+		{
+			get
+			{
+				return true;
+			}
 		}
 	}
 }

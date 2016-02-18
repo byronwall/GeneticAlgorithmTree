@@ -46,6 +46,7 @@
         	this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         	this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         	this.txt_status = new System.Windows.Forms.TextBox();
+        	this.prop_gaOptions = new System.Windows.Forms.PropertyGrid();
         	this.statusStrip1.SuspendLayout();
         	this.menuStrip1.SuspendLayout();
         	this.SuspendLayout();
@@ -126,9 +127,9 @@
         	// 
         	this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
 			this.prog_ongoing});
-        	this.statusStrip1.Location = new System.Drawing.Point(0, 399);
+        	this.statusStrip1.Location = new System.Drawing.Point(0, 458);
         	this.statusStrip1.Name = "statusStrip1";
-        	this.statusStrip1.Size = new System.Drawing.Size(952, 22);
+        	this.statusStrip1.Size = new System.Drawing.Size(1111, 22);
         	this.statusStrip1.TabIndex = 9;
         	this.statusStrip1.Text = "statusStrip1";
         	// 
@@ -145,7 +146,7 @@
 			this.helpToolStripMenuItem});
         	this.menuStrip1.Location = new System.Drawing.Point(0, 0);
         	this.menuStrip1.Name = "menuStrip1";
-        	this.menuStrip1.Size = new System.Drawing.Size(952, 24);
+        	this.menuStrip1.Size = new System.Drawing.Size(1111, 24);
         	this.menuStrip1.TabIndex = 10;
         	this.menuStrip1.Text = "menuStrip1";
         	// 
@@ -198,14 +199,23 @@
         	this.txt_status.Multiline = true;
         	this.txt_status.Name = "txt_status";
         	this.txt_status.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-        	this.txt_status.Size = new System.Drawing.Size(480, 339);
+        	this.txt_status.Size = new System.Drawing.Size(328, 416);
         	this.txt_status.TabIndex = 11;
+        	this.txt_status.WordWrap = false;
+        	// 
+        	// prop_gaOptions
+        	// 
+        	this.prop_gaOptions.Location = new System.Drawing.Point(776, 39);
+        	this.prop_gaOptions.Name = "prop_gaOptions";
+        	this.prop_gaOptions.Size = new System.Drawing.Size(323, 416);
+        	this.prop_gaOptions.TabIndex = 12;
         	// 
         	// Form1
         	// 
         	this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
         	this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        	this.ClientSize = new System.Drawing.Size(952, 421);
+        	this.ClientSize = new System.Drawing.Size(1111, 480);
+        	this.Controls.Add(this.prop_gaOptions);
         	this.Controls.Add(this.txt_status);
         	this.Controls.Add(this.statusStrip1);
         	this.Controls.Add(this.menuStrip1);
@@ -249,6 +259,7 @@
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.TextBox txt_status;
+        private System.Windows.Forms.PropertyGrid prop_gaOptions;
     }
 }
 

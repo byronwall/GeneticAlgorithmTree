@@ -1,3 +1,32 @@
 ﻿//this files contains some of the ongoing notes.  things in here should be cleared out and made into Issues or just implemented.
 
 make the inner run have fewer generations... just need a couple good ones to get through
+
+looks like it needs to do better to generate a couple random nodes to add into the tree
+
+is there some way to track the history of a tree along with the changes that got it to the current point?
+ - maybe only store this for the best % of the trees that were kept
+ 
+ move evaluation params into the GAOptions section
+ 
+ track which nodes are predicting well and have them picked more frequently for swaps
+ 
+ look for ways to "split" high count terminal nodes (possibly using the confusion table to decide how to split)
+ 
+ could compute confusion matrices per node and use that to determine which chunks are good
+  - the root node is the same as the current tree score
+  
+ is it possible to use a less random process to choose which class to assign TERM to?
+  - could check which result should have been called the most and just switch it
+  - make this a step in the process to add a new tree for each keeper: force all to best
+  
+ is it possible to "extract" out a multi condition that does well for a particular class?
+ 
+ some way to add add'l data columns on the fly for different tests?
+  - MAX(several columns)
+  - math functions applied to columns
+  - this is essentially feature creation where the GA is used to decided if those features are good
+  - maybe add several new columns each time and keep those around that are useful
+  
+ is there any value to predicting multiple classes at once?
+  - I think that these indicators point to classes 3 or 6... then focus on just that split
