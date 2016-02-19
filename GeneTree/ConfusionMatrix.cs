@@ -24,8 +24,6 @@ namespace GeneTree
 		
 		public void AddItem(int row, int column)
 		{
-			_isDirty = true;
-			
 			_values[row, column]++;
 			_count++;
 		}
@@ -56,12 +54,6 @@ namespace GeneTree
 			
 			return sb.ToString();
 		}
-		
-		private double _obsAccuracy;
-		private double _expAccuracy;
-		private double _kappa;
-		
-		private bool _isDirty = true;
 		
 		public double GetObservedAccuracy()
 		{			
@@ -100,9 +92,6 @@ namespace GeneTree
 		{
 			double obs_acc = GetObservedAccuracy();
 			double exp_acc = GetExpectedAccuracy();
-			
-			//TODO implement dirty with a method to ProcessCalcs for the matrix
-			_isDirty = false;
 			
 			return (obs_acc - exp_acc) / (1 - exp_acc);
 		}

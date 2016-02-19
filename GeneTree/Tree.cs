@@ -42,6 +42,9 @@ namespace GeneTree
 		
 		public void RemoveZeroCountNodes()
 		{
+			//TODO this method needs to be unbroken
+			
+			return;
 			Stack<TreeNode> nodes_to_process = new Stack<TreeNode>();
 			nodes_to_process.Push(_root);
 			
@@ -51,12 +54,16 @@ namespace GeneTree
 				
 				if (node._traverseCount == 0)
 				{
-					node.ResetNodeToNoClass();
+					//TODO change this to use a delete and new node, updating references along the way
+					
+					//node.ResetNodeToNoClass();
 				}
-				else if (!node.IsTerminal)
+				else
 				{
-					nodes_to_process.Push(node._trueNode);
-					nodes_to_process.Push(node._falseNode);
+					foreach (var subNode in node._subNodes)
+					{
+						nodes_to_process.Push(subNode);	
+					} 
 				}
 			}
 		}
@@ -64,10 +71,9 @@ namespace GeneTree
 
 		public void RemoveChildrenFromNode(TreeNode node)
 		{
-			if (!node.IsTerminal)
+			foreach (var subNode in node._subNodes)
 			{
-				RemoveNodeWithChildren(node._trueNode);
-				RemoveNodeWithChildren(node._falseNode);
+				RemoveNodeWithChildren(subNode);
 			}
 		}
 
@@ -94,15 +100,14 @@ namespace GeneTree
 		{
 			AddNodeWithoutChildren(node);
 			
-			if (!node.IsTerminal)
+			foreach (var subNode in node._subNodes)
 			{
-				AddNodeWithChildren(node._trueNode);
-				AddNodeWithChildren(node._falseNode);				
+				AddNodeWithChildren(subNode);
 			}
 		}
 		public bool TraverseData(DataPoint point, GeneticAlgorithmRunResults results)
 		{
-			return TraverseData(_root, point, results);
+			return _root.TraverseData(point, results);
 		}
 		
 		public void ProcessDataThroughTree(DataPointManager dataPointMgr, GeneticAlgorithmRunResults results)
@@ -121,42 +126,6 @@ namespace GeneTree
 
 			//store the results for future use
 			_currentResults = results;			
-		}
-
-		public bool TraverseData(TreeNode node, DataPoint point, GeneticAlgorithmRunResults results)
-		{
-			node._traverseCount++;
-			
-			//start at root, test if correct
-			if (node.IsTerminal)
-			{
-				//-1 will be the no classificaiton route for now
-				if (node.Classification == -1.0)
-				{					
-					return false;
-				}
-				else
-				{
-					//these are known to be ints since they are classes from a Codebook
-					results.count_classedData++;
-					results._matrix.AddItem((int)point._classification._value, (int)node.Classification);
-					return true;
-				}
-			}
-			else
-			{
-				//do the test and then traverse
-				if (node.Test.isTrueTest(point))
-				{
-					//0 will be yes
-					return TraverseData(node._trueNode, point, results);
-				}
-				else
-				{
-					//1 will be no
-					return TraverseData(node._falseNode, point, results);
-				}
-			}
 		}
 
 		public override string ToString()
@@ -179,10 +148,9 @@ namespace GeneTree
 				}
 				sb.Append(node.ToString());
 
-				if (!node.IsTerminal)
+				foreach (var subNode in node._subNodes)
 				{
-					nodes.Push(new Tuple<TreeNode, int>(node._trueNode, item.Item2 + 1));
-					nodes.Push(new Tuple<TreeNode, int>(node._falseNode, item.Item2 + 1));
+					nodes.Push(new Tuple<TreeNode, int>(subNode, item.Item2 + 1));
 				}
 			}
 			return sb.ToString();
@@ -256,10 +224,9 @@ namespace GeneTree
 						node._parent = node_parent.Item2;					
 						node._tree = tree_read;
 					
-						if (!node.IsTerminal)
+						foreach (var subNode in node._subNodes)
 						{
-							nodes_to_process.Push(Tuple.Create(node._trueNode, node));
-							nodes_to_process.Push(Tuple.Create(node._falseNode, node));
+							nodes_to_process.Push(Tuple.Create(subNode, node));
 						}
 					}
 				}

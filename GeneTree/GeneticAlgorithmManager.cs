@@ -14,8 +14,9 @@ namespace GeneTree
 	{
 		public GeneticAlgorithmOptions _gaOptions = new GeneticAlgorithmOptions();
 		
-		Random rando = new Random();
-		DataPointManager dataPointMgr = new DataPointManager();
+		//TODO allow this to take a seed for reproducibiltiy later
+		public Random rando = new Random();
+		public DataPointManager dataPointMgr = new DataPointManager();
 		
 		public event EventHandler<EventArg<GeneticAlgorithmUpdateStatus>> ProgressUpdated;
 		
@@ -186,21 +187,12 @@ namespace GeneTree
 						
 						//stick the new node into the old one's spot
 						node1_rando_term._parent = node1._parent;
-						node1_rando_term._parentTrue = node1._parentTrue;
 						
 						tree1_copy.RemoveNodeWithChildren(node1);
 						
 						if (node1_rando_term._parent != null && tree1_copy._nodes.Count > 0)
 						{
-							if (node1_rando_term._parentTrue)
-							{
-								node1_rando_term._parent._trueNode = node1_rando_term;
-							}
-							else
-							{
-								node1_rando_term._parent._falseNode = node1_rando_term;
-							}
-							
+							node1_rando_term._parent.UpdateChildReference(node1, node1_rando_term);
 							tree1_copy._source = "delete";
 							newCreations.Add(tree1_copy);
 						}
@@ -213,24 +205,7 @@ namespace GeneTree
 						Tree tree1_copy = tree1.Copy();
 						
 						TreeNode node1_copy = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
-						
-						//TODO allow for the value to be modifying (add/subtract/etc. to make smaller changes)
-						if (node1_copy.IsTerminal)
-						{
-							node1_copy.Classification = dataPointMgr.GetRandomClassification(rando);
-							tree1_copy._source = "new class";
-						}
-						else if (node1_copy.Test.CanChangeValue && rando.NextDouble() < 0.8)
-						{
-							//just change the value
-							bool result = node1_copy.Test.ChangeTestValue(this, rando);
-							tree1_copy._source = "new test value";
-						}
-						else
-						{
-							node1_copy.Test = TreeTest.TreeTestFactory(dataPointMgr, rando);
-							tree1_copy._source = "new test";
-						}
+						node1_copy.ApplyRandomChangeToNodeValue(this);
 						
 						newCreations.Add(tree1_copy);
 					}
@@ -267,36 +242,10 @@ namespace GeneTree
 			dataPointMgr.LoadFromCsv(csv_path);
 		}
 		
-		public TreeTest CreateRandomTest()
-		{
-			//TODO remove this method completely
-			return TreeTest.TreeTestFactory(dataPointMgr, rando);
-		}
-		
 		public TreeNode CreateRandomNode(Tree tree, bool ShouldForceTerminal = false)
 		{
-			TreeNode node = new TreeNode();
-			
-			tree.AddNodeWithoutChildren(node);
-			
-			node.IsTerminal = rando.NextDouble() > _gaOptions.prob_node_terminal;
-			
-			//TODO: consider changing this or using some other scheme to prevent runaway initial trees.					
-			if (ShouldForceTerminal || tree._nodes.Count > _gaOptions.max_node_count_for_new_tree)
-			{
-				node.IsTerminal = true;
-			}
-			if (node.IsTerminal)
-			{
-				node.Classification = dataPointMgr.GetRandomClassification(rando);
-			}
-			else
-			{
-				//create the test				
-				node.Test = CreateRandomTest();
-			}			
-				
-			return node;
+			//TODO remove this completely
+			return TreeNode.TreeNodeFactory(this, ShouldForceTerminal, tree);
 		}
 
 		private Tree CreateRandomTree()
@@ -313,30 +262,13 @@ namespace GeneTree
 			while (nonTermNodes.Count > 0)
 			{
 				var node = nonTermNodes.Dequeue();
+				node.FillNodeWithRandomChildrenIfNeeded(this);
 				
-				//need to create two new nodes, yes and no
-				
-				TreeNode node_true = CreateRandomNode(tree);
-				TreeNode node_false = CreateRandomNode(tree);
-				
-				node._trueNode = node_true;
-				node._falseNode = node_false;
-				
-				node_true._parent = node;
-				node_false._parent = node;
-				
-				node_true._parentTrue = true;
-				
-				//process the new nodes if they are not terminal
-				if (!node_true.IsTerminal)
+				foreach (var subNode in node._subNodes)
 				{
-					nonTermNodes.Enqueue(node_true);
+					nonTermNodes.Enqueue(subNode);
 				}
-				if (!node_false.IsTerminal)
-				{
-					nonTermNodes.Enqueue(node_false);
-				}
-			}			
+			}
 			return tree;
 		}
 	}
