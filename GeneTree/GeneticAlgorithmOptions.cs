@@ -4,6 +4,48 @@ namespace GeneTree
 {
 	public class GeneticAlgorithmOptions
 	{
+		public double eval_percentClass_min = 0.1;
+
+		public double Eval_percentClass_min
+		{
+			get
+			{
+				return eval_percentClass_min;
+			}
+			set
+			{
+				eval_percentClass_min = value;
+			}
+		}
+
+		public double eval_class_power = 0.1;
+
+		public double Eval_class_power
+		{
+			get
+			{
+				return eval_class_power;
+			}
+			set
+			{
+				eval_class_power = value;
+			}
+		}
+
+		public double eval_coverage_power = 0.1;
+
+		public double Eval_coverage_power
+		{
+			get
+			{
+				return eval_coverage_power;
+			}
+			set
+			{
+				eval_coverage_power = value;
+			}
+		}
+		
 		public double test_value_change = 0.1;
 		public double Test_value_change
 		{

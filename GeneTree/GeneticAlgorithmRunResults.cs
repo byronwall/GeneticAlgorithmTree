@@ -19,9 +19,12 @@ namespace GeneTree
 
 		public int tree_nodeCount;
 		
-		public GeneticAlgorithmRunResults(DataPointManager mgr)
+		public GeneticAlgorithmManager ga_mgr;
+		
+		public GeneticAlgorithmRunResults(GeneticAlgorithmManager ga_mgr)
 		{
-			_matrix = new ConfusionMatrix(mgr.classes.Length);
+			this.ga_mgr = ga_mgr;
+			_matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
 		}
 		
 		public double GetPercentClassified
@@ -36,14 +39,15 @@ namespace GeneTree
 		{
 			get
 			{
-				if (this.GetPercentClassified < 0.1)
+				if (this.GetPercentClassified < ga_mgr._gaOptions.eval_percentClass_min)
 				{
 					return 0;
 				}				
 				
+				
 				return _matrix.GetKappa() *
-				Math.Pow(this.GetPercentClassified, 0.1) *
-				Math.Pow(1.0 * _matrix._columnsWithData / _matrix._size, 0.1);
+				Math.Pow(this.GetPercentClassified, ga_mgr._gaOptions.eval_class_power) *
+				Math.Pow(1.0 * _matrix._columnsWithData / _matrix._size, ga_mgr._gaOptions.eval_coverage_power);
 			}
 		}
 		

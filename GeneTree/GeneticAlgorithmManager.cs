@@ -51,7 +51,7 @@ namespace GeneTree
 			
 			foreach (var tree in trees)
 			{
-				GeneticAlgorithmRunResults results = new GeneticAlgorithmRunResults(dataPointMgr);
+				GeneticAlgorithmRunResults results = new GeneticAlgorithmRunResults(this);
 				tree.ProcessDataThroughTree(dataPointMgr, results);
 				
 				//TODO improve override for non improving score

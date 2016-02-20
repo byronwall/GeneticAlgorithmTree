@@ -1,5 +1,3 @@
 ﻿//this files contains some of the ongoing notes.  things in here should be cleared out and made into Issues or just implemented.
 
 need to take a first shot at the BNP data with a new configuration and test load
-
-expose rando for the GAMgr so that calls that need it can just use a single ref to the mgr
