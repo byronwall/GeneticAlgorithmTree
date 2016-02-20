@@ -22,10 +22,34 @@ namespace GeneTree
 			_values = new int[size, size];
 		}
 		
+		public void AddItem(double row, double column)
+		{
+			AddItem((int)row, (int)column);
+		}
+		
 		public void AddItem(int row, int column)
 		{
 			_values[row, column]++;
 			_count++;
+		}
+		
+		public double GetRowWithMaxCount(){
+			
+			double max = double.MinValue;
+			int max_index = 0;
+			
+			for (int i = 0; i < _size; i++)
+			{
+				for (int j = 0; j < _size; j++)
+				{
+					if(_values[i,j] > max){
+						max_index = i;
+						max = _values[i, j];
+					}
+				}
+			}
+			
+			return max_index;
 		}
 
 		public override string ToString()
@@ -49,6 +73,7 @@ namespace GeneTree
 				sb.Append("\r\n");
 			}
 			
+			sb.AppendLine(string.Format("max row: {0}", GetRowWithMaxCount()));
 			sb.AppendLine(string.Format("obs: {0} \t exp: {1}", GetObservedAccuracy(), GetExpectedAccuracy()));
 			sb.AppendLine(string.Format("columns with data = {0}", _columnsWithData));
 			

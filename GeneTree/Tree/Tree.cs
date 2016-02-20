@@ -40,11 +40,20 @@ namespace GeneTree
 			return new_tree;			
 		}
 		
+		public IEnumerable<T> GetNodesOfType<T>() where T: TreeNode
+		{
+			foreach (var node in _nodes)
+			{
+				if (node.GetType() == typeof(T))
+				{
+					yield return (T)node;
+				}
+			}
+		}
+		
 		public void RemoveZeroCountNodes()
 		{
 			//TODO this method needs to be unbroken
-			
-			return;
 			Stack<TreeNode> nodes_to_process = new Stack<TreeNode>();
 			nodes_to_process.Push(_root);
 			
@@ -54,9 +63,19 @@ namespace GeneTree
 				
 				if (node._traverseCount == 0)
 				{
-					//TODO change this to use a delete and new node, updating references along the way
+					//create the new node
+					ClassificationTreeNode blank = new ClassificationTreeNode();
+					blank.Classification = -1;
+					blank.matrix = new ConfusionMatrix(node.matrix._size);
 					
-					//node.ResetNodeToNoClass();
+					//update refs
+					if (node._parent != null)
+					{
+						node._parent.UpdateChildReference(node, blank);
+					}
+					
+					//delete current node
+					RemoveNodeWithChildren(node);
 				}
 				else
 				{
@@ -155,6 +174,7 @@ namespace GeneTree
 			}
 			return sb.ToString();
 		}
+		
 		//TODO consider removing the Hash and Equals, not sure there are any duplicates
 		public override int GetHashCode()
 		{
@@ -169,7 +189,6 @@ namespace GeneTree
 			}
 			return hashCode;
 		}
-
 		public override bool Equals(object obj)
 		{
 			Tree other = obj as Tree;

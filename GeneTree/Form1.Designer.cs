@@ -195,19 +195,20 @@
         	// 
         	// txt_status
         	// 
+        	this.txt_status.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
         	this.txt_status.Location = new System.Drawing.Point(442, 39);
         	this.txt_status.Multiline = true;
         	this.txt_status.Name = "txt_status";
         	this.txt_status.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-        	this.txt_status.Size = new System.Drawing.Size(328, 416);
+        	this.txt_status.Size = new System.Drawing.Size(412, 416);
         	this.txt_status.TabIndex = 11;
         	this.txt_status.WordWrap = false;
         	// 
         	// prop_gaOptions
         	// 
-        	this.prop_gaOptions.Location = new System.Drawing.Point(776, 39);
+        	this.prop_gaOptions.Location = new System.Drawing.Point(860, 39);
         	this.prop_gaOptions.Name = "prop_gaOptions";
-        	this.prop_gaOptions.Size = new System.Drawing.Size(323, 416);
+        	this.prop_gaOptions.Size = new System.Drawing.Size(239, 416);
         	this.prop_gaOptions.TabIndex = 12;
         	// 
         	// Form1

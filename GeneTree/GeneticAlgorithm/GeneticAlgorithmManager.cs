@@ -141,6 +141,27 @@ namespace GeneTree
 					Logger.WriteLine("");
 					Logger.WriteLine(tree);
 					Logger.WriteLine(tree._currentResults);
+					
+					//output the nodes matrices
+					
+					foreach (var node in tree._nodes)
+					{
+						Logger.WriteLine(node);
+						Logger.WriteLine(node.matrix);
+					}
+				}
+				
+				//TODO move this to a better spot and turn into a method
+				//force each tree to make the best prediction possible
+				foreach (var tree in starter)
+				{
+					foreach (var node in tree.GetNodesOfType<ClassificationTreeNode>())
+					{
+						var best_class = node.matrix.GetRowWithMaxCount();
+						if(node.Classification != best_class){
+							node.Classification = best_class;
+						}
+					}
 				}
 				
 				for (int populationNumber = 0; populationNumber < _gaOptions.populationSize; populationNumber++)
