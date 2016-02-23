@@ -51,9 +51,40 @@ namespace GeneTree
 			}
 		}
 		
+		private bool _dirtyStructure = true;
+		public TreeNode GetNodeAtStructualLocation(int location)
+		{
+			//TODO remove this override later
+			if (true || _dirtyStructure)
+			{
+				SetStructuralLocationsForNodes();
+			}
+			
+			return _nodes.Single(c => c._structuralLocation == location);
+		}
+		
+		public void SetStructuralLocationsForNodes()
+		{
+			int id = 0;
+			Stack<TreeNode> nodes_to_process = new Stack<TreeNode>();
+			nodes_to_process.Push(_root);
+			
+			while (nodes_to_process.Count > 0)
+			{
+				TreeNode node = nodes_to_process.Pop();
+				node._structuralLocation = id++;
+				
+				foreach (var subNode in node._subNodes)
+				{
+					nodes_to_process.Push(subNode);
+				}
+			}
+			
+			_dirtyStructure = false;
+		}
+		
 		public void RemoveZeroCountNodes()
 		{
-			//TODO this method needs to be unbroken
 			Stack<TreeNode> nodes_to_process = new Stack<TreeNode>();
 			nodes_to_process.Push(_root);
 			
@@ -67,6 +98,7 @@ namespace GeneTree
 					ClassificationTreeNode blank = new ClassificationTreeNode();
 					blank.Classification = -1;
 					blank.matrix = new ConfusionMatrix(node.matrix._size);
+					blank._parent = node._parent;
 					
 					//update refs
 					if (node._parent != null)
@@ -131,10 +163,29 @@ namespace GeneTree
 		
 		public void ProcessDataThroughTree(DataPointManager dataPointMgr, GeneticAlgorithmRunResults results)
 		{
-			//TODO this should return a full GeneticAlgorithmRunResults which can be processed
+			//reset traverse counts
+			foreach (var node in this._nodes)
+			{
+				node._traverseCount = 0;
+				node.matrix = new ConfusionMatrix(dataPointMgr.classes.Length);
+			}
 			
-			//clear out the node counts
-			this._nodes.ForEach(c => c._traverseCount = 0);
+			//double check on traverse count
+			Stack<TreeNode> nodes_to_process = new Stack<TreeNode>();
+			nodes_to_process.Push(_root);
+			
+			while (nodes_to_process.Count > 0)
+			{
+				TreeNode node = nodes_to_process.Pop();
+				//TODO determine why this line will fail at times
+				Debug.Assert(node._traverseCount == 0);
+				
+				foreach (var subNode in node._subNodes)
+				{
+					nodes_to_process.Push(subNode);	
+				} 
+			}
+			
 			
 			ConfusionMatrix matrix = new ConfusionMatrix(dataPointMgr.classes.Length);
 			foreach (var dataPoint in dataPointMgr._pointsToTest)
@@ -142,6 +193,8 @@ namespace GeneTree
 				results.count_allData++;
 				TraverseData(dataPoint, results);
 			}
+			
+			results.tree_nodeCount = _nodes.Count;
 
 			//store the results for future use
 			_currentResults = results;			

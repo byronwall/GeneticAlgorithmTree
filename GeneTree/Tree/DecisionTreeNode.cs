@@ -16,7 +16,10 @@ namespace GeneTree
 		public override bool TraverseData(DataPoint point, GeneticAlgorithmRunResults results)
 		{
 			this._traverseCount++;
-			return this.Test.isTrueTest(point) ? this._trueNode.TraverseData(point, results) : this._falseNode.TraverseData(point, results);
+			
+			return this.Test.isTrueTest(point) ?
+				this._trueNode.TraverseData(point, results) :
+				this._falseNode.TraverseData(point, results);
 		}
 
 		public TreeTest Test;
@@ -35,6 +38,7 @@ namespace GeneTree
 		{
 			this._trueNode = TreeNode.TreeNodeFactory(ga_mgr, false, this._tree);
 			this._trueNode._parent = this;
+			
 			this._falseNode = TreeNode.TreeNodeFactory(ga_mgr, false, this._tree);
 			this._falseNode._parent = this;
 		}

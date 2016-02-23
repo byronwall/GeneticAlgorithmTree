@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using MoreLinq;
 
 namespace GeneTree
 {
@@ -43,39 +44,11 @@ namespace GeneTree
 			return trees;
 		}
 
-		private List<Tree> ProcessPoolOfTrees(IEnumerable<Tree> trees, int generation)
-		{
-			List<Tree> keeps = new List<Tree>();
-			
-			Logger.WriteLine("point count: " + dataPointMgr._pointsToTest.Count);
-			
-			foreach (var tree in trees)
-			{
-				GeneticAlgorithmRunResults results = new GeneticAlgorithmRunResults(this);
-				tree.ProcessDataThroughTree(dataPointMgr, results);
-				
-				//TODO improve override for non improving score
-				if (!tree._isDirty ||
-				    tree._prevResults == null ||
-				    results.GetMetricResult > tree._prevResults.GetMetricResult ||
-				    rando.NextDouble() > 0.95)
-				{
-					//only add the new tree to the results if the score improved
-					tree.RemoveZeroCountNodes();
-					keeps.Add(tree);
-				}
-				
-				tree._isDirty = false;
-				tree._prevResults = results;
-			}
-			
-			return keeps;
-		}
-		
 		public void CreatePoolOfGoodTrees()
 		{
 			List<Tree> theBest = new List<Tree>();
 			
+			//TODO create this dir once it's needed
 			var new_dir = Directory.CreateDirectory("tree outputs\\" + DateTime.Now.Ticks);
 			
 			//HACK: data update only at start to ensure that trees are improving on same data
@@ -90,8 +63,8 @@ namespace GeneTree
 				
 				for (int run = 0; run < _gaOptions.seq_inner_run; run++)
 				{
-					var trees = ProcessTheNextGeneration();					
-					trees[0].WriteToXmlFile(Path.Combine(new_dir.FullName, string.Format("{0} - {1}.xml", j, run)));					
+					var trees = ProcessTheNextGeneration();
+					trees[0].WriteToXmlFile(Path.Combine(new_dir.FullName, string.Format("{0} - {1}.xml", j, run)));
 					keepers.AddRange(trees);
 				}
 				
@@ -107,154 +80,160 @@ namespace GeneTree
 			ProcessTheNextGeneration(theBest);
 		}
 		
+		private List<Tree> ProcessPoolOfTrees(IEnumerable<Tree> trees, int generation)
+		{
+			List<Tree> keeps = new List<Tree>();
+			
+			Logger.WriteLine("point count: " + dataPointMgr._pointsToTest.Count);
+			
+			foreach (var tree in trees)
+			{
+				GeneticAlgorithmRunResults results = null;
+				
+				//quick pass through for trees already processed
+				if (!tree._isDirty)
+				{
+					tree._source = "pass through";
+					keeps.Add(tree);
+					continue;
+				}
+				
+				bool processAgain = true;
+				while (processAgain)
+				{
+					results = new GeneticAlgorithmRunResults(this);
+					processAgain = false;
+					tree.ProcessDataThroughTree(dataPointMgr, results);
+					
+					foreach (var node in tree.GetNodesOfType<ClassificationTreeNode>())
+					{
+						var best_class = node.matrix.GetRowWithMaxCount();
+						if (node.Classification != best_class)
+						{
+							node.Classification = best_class;
+							processAgain = true;
+						}
+					}
+				}
+				
+				//moving this out of selectivity since node count affects score
+				tree.RemoveZeroCountNodes();
+				
+				//TODO improve override for non improving score
+				//will add kepeers if there was no previous result or if the score improved or randomly
+				if (tree._prevResults == null ||
+				    results.GetMetricResult > tree._prevResults.GetMetricResult ||
+				    rando.NextDouble() > 0.95)
+				{
+					//only add the new tree to the results if the score improved
+					keeps.Add(tree);
+				}
+				
+				tree._isDirty = false;
+				tree._prevResults = results;
+			}
+			
+			return keeps;
+		}
+		
 		public List<Tree> ProcessTheNextGeneration()
 		{
 			var starter = CreateRandomPoolOfTrees(_gaOptions.populationSize);
-			
 			return ProcessTheNextGeneration(starter);
 		}
 
-		public List<Tree> ProcessTheNextGeneration(List<Tree> starter)
+		public List<Tree> ProcessTheNextGeneration(List<Tree> treesInPopulation)
 		{
-			//TODO move the processing code into a GeneticOperations class to handle it all
-			
 			//TODO add a step to check for "convergence" and stop iterating
 			for (int generationNumber = 0; generationNumber < _gaOptions.generations; generationNumber++)
 			{
 				Logger.WriteLine("generation: " + generationNumber);
 				
-				starter = ProcessPoolOfTrees(starter, generationNumber);
+				treesInPopulation = ProcessPoolOfTrees(treesInPopulation, generationNumber);
+				
+				foreach (var element in treesInPopulation.GroupBy(c=>c._source))
+				{
+					Logger.WriteLine(string.Format("{0} has {1} = {2}", 
+							element.Key, element.Count(), 
+							1.0 * element.Count() / _gaOptions.populationSize));
+				}
 				
 				List<Tree> newCreations = new List<Tree>();
 								
 				//thin down the herd and take pop size or total
-				starter = starter.Distinct()
+				treesInPopulation = treesInPopulation.Distinct()
 					.OrderByDescending(c => c._prevResults.GetMetricResult)
 					.Take((int)(_gaOptions.populationSize * _gaOptions.prob_population_to_keep))
 					.ToList();
 				
 				//output some info on best
 				//Logger.WriteLine(string.Join("\r\n", starter.Take(10).Select(c => c._prevResults.ToString())));
+				Logger.WriteLine("");
+				foreach (var tree in treesInPopulation.Take(10))
+				{
+					Logger.WriteLine(tree._prevResults.GetMetricResult);
+				}
 				
-				foreach (var tree in starter.Take(1))
+				
+				
+				foreach (var tree in treesInPopulation.Take(1))
 				{
 					Logger.WriteLine("");
 					Logger.WriteLine(tree);
-					Logger.WriteLine(tree._currentResults);
+					Logger.WriteLine(tree._prevResults);
 					
 					//output the nodes matrices
 					
 					foreach (var node in tree._nodes)
 					{
-						Logger.WriteLine(node);
-						Logger.WriteLine(node.matrix);
-					}
-				}
-				
-				//TODO move this to a better spot and turn into a method
-				//force each tree to make the best prediction possible
-				foreach (var tree in starter)
-				{
-					foreach (var node in tree.GetNodesOfType<ClassificationTreeNode>())
-					{
-						var best_class = node.matrix.GetRowWithMaxCount();
-						if(node.Classification != best_class){
-							node.Classification = best_class;
+						if (node._traverseCount > 0)
+						{
+							Logger.WriteLine(node);
+							Logger.WriteLine(node.matrix);
 						}
 					}
 				}
+				
 				
 				for (int populationNumber = 0; populationNumber < _gaOptions.populationSize; populationNumber++)
 				{
 					double tester = rando.NextDouble();
-					//TODO: all of these stubs need to be turned into a new class that abstracts away the behavior
+					
+					//TODO move this into a better structure to handle the repetitive nature and common signature
+					//TODO change out probabilities for some other number that can handle new additions without breaking (size of pie algorithm)
 					
 					if (tester < _gaOptions.prob_ops_swap)
 					{
-						//node swap
-						Tree tree1 = starter[rando.Next(starter.Count())];
-						Tree tree2 = starter[rando.Next(starter.Count())];
-						
-						Tree tree1_copy = tree1.Copy();
-						Tree tree2_copy = tree2.Copy();
-						
-						tree1_copy._source = "swap";
-						tree2_copy._source = "swap";
-						
-						TreeNode node1 = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
-						TreeNode node2 = tree2_copy._nodes[rando.Next(tree2_copy._nodes.Count)];
-						
-						TreeNode.SwapNodesInTrees(node1, node2);
-						
-						//stick both trees into the next gen
-						if (tree1_copy._nodes.Count > 0)
-						{
-							newCreations.Add(tree1_copy);
-						}
-						if (tree2_copy._nodes.Count > 0)
-						{
-							newCreations.Add(tree2_copy);
-						}
+						newCreations.AddRange(GeneticOperations.SwapNodesBetweenTrees(this, treesInPopulation));
 					}
-					else if (tester < _gaOptions.prob_ops_delete)
+					else if (tester < _gaOptions.prob_node_split)
 					{
-						//node deletion
-						
-						Tree tree1 = starter[rando.Next(starter.Count())];
-						Tree tree1_copy = tree1.Copy();
-						TreeNode node1 = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
-						
-						TreeNode node1_rando_term = CreateRandomNode(tree1_copy, true);
-						
-						//stick the new node into the old one's spot
-						node1_rando_term._parent = node1._parent;
-						
-						tree1_copy.RemoveNodeWithChildren(node1);
-						
-						if (node1_rando_term._parent != null && tree1_copy._nodes.Count > 0)
-						{
-							node1_rando_term._parent.UpdateChildReference(node1, node1_rando_term);
-							tree1_copy._source = "delete";
-							newCreations.Add(tree1_copy);
-						}
+						newCreations.AddRange(GeneticOperations.SplitNodeWithMostPopularClasses(this, treesInPopulation));
+					}
+					//TODO deletion looks suspect
+					else if (false && tester < _gaOptions.prob_ops_delete)
+					{
+						newCreations.AddRange(GeneticOperations.DeleteNodeFromTree(this, treesInPopulation));
 					}
 					else if (tester < _gaOptions.prob_ops_change)
 					{
-						//node parameter/value change
-						
-						Tree tree1 = starter[rando.Next(starter.Count())];
-						Tree tree1_copy = tree1.Copy();
-						
-						TreeNode node1_copy = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
-						node1_copy.ApplyRandomChangeToNodeValue(this);
-						
-						newCreations.Add(tree1_copy);
+						newCreations.AddRange(GeneticOperations.ChangeValueForNode(this, treesInPopulation));
 					}
 					else
 					{
-						//all random new
-						Tree tree = CreateRandomTree();
-						tree._source = "new tree";
-						
-						newCreations.Add(tree);
+						newCreations.AddRange(GeneticOperations.CreateRandomTree(this, treesInPopulation));
 					}
 				}
 				
 				//moves things to the master list
-				starter.AddRange(newCreations);
-				
-				//output some data about the keepers
-				foreach (var element in newCreations.GroupBy(c=>c._source))
-				{
-					Logger.WriteLine(string.Format("{0} has {1} = {2}", element.Key, element.Count(), 1.0 * element.Count() / _gaOptions.populationSize));
-				}
+				treesInPopulation.AddRange(newCreations);
 				
 				OnProgressUpdated(100 * generationNumber / _gaOptions.generations);
 			}
 			//TODO add a step at the end to verify the results with a hold out data set
 			OnProgressUpdated(100);
 			
-			return starter;
+			return treesInPopulation;
 		}
 
 		public void LoadDataFile(string csv_path, string config_path)
@@ -269,7 +248,8 @@ namespace GeneTree
 			return TreeNode.TreeNodeFactory(this, ShouldForceTerminal, tree);
 		}
 
-		private Tree CreateRandomTree()
+		//TODO move this somewhere else
+		public Tree CreateRandomTree()
 		{
 			//build a random tree
 			Tree tree = new Tree();
@@ -293,4 +273,6 @@ namespace GeneTree
 			return tree;
 		}
 	}
+	
+	
 }

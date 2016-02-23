@@ -27,6 +27,8 @@ namespace GeneTree
 		public Tree _tree;
 		public int _traverseCount;
 		
+		public int _structuralLocation;
+		
 		public abstract TreeNode CopyNonLinkingData();
 		public abstract void CreateRandom(GeneticAlgorithmManager ga_mgr);
 		public abstract bool TraverseData(DataPoint point, GeneticAlgorithmRunResults results);
@@ -35,6 +37,16 @@ namespace GeneTree
 		
 		public abstract bool IsTerminal{ get; }
 		
+		public virtual bool UpdateParentReference(TreeNode newRef)
+		{
+			if (this._parent != null)
+			{
+				return this._parent.UpdateChildReference(this, newRef);
+			}
+			
+			return false;
+		}
+				
 		public virtual void FillNodeWithRandomChildrenIfNeeded(GeneticAlgorithmManager ga_mgr)
 		{
 			return;
@@ -93,14 +105,17 @@ namespace GeneTree
 			return node_output;
 		}
 		
-		public static void SwapNodesInTrees(TreeNode node1, TreeNode node2)
+		public static bool SwapNodesInTrees(TreeNode node1, TreeNode node2)
 		{
 			//TODO get this method out of this class.  It looks quite out of place.
 			//TODO handle this better where the node to swap is the root, right now just exists with no change
 			if (node1._parent == null || node2._parent == null)
 			{
-				return;
+				return false ;
 			}
+			
+			var tree1 = node1._tree;
+			var tree2 = node2._tree;
 			
 			//remove nodes from trees
 			node1._tree.RemoveNodeWithChildren(node1);
@@ -117,8 +132,10 @@ namespace GeneTree
 			node2._parent = node1_parent;
 			
 			//add nodes back to new trees
-			node1._tree.AddNodeWithChildren(node1);
-			node2._tree.AddNodeWithChildren(node2);
+			tree1.AddNodeWithChildren(node2);
+			tree2.AddNodeWithChildren(node1);
+			
+			return true;
 		}
 	}
 }

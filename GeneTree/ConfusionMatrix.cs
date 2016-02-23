@@ -33,7 +33,8 @@ namespace GeneTree
 			_count++;
 		}
 		
-		public double GetRowWithMaxCount(){
+		public double GetRowWithMaxCount()
+		{
 			
 			double max = double.MinValue;
 			int max_index = 0;
@@ -42,7 +43,8 @@ namespace GeneTree
 			{
 				for (int j = 0; j < _size; j++)
 				{
-					if(_values[i,j] > max){
+					if (_values[i, j] > max)
+					{
 						max_index = i;
 						max = _values[i, j];
 					}
@@ -80,6 +82,26 @@ namespace GeneTree
 			return sb.ToString();
 		}
 		
+		public IEnumerable<int> GetRowsOrderedByCount()
+		{
+			
+			//will be row, value
+			List<Tuple<int, double>> values = new List<Tuple<int, double>>();
+			
+			for (int i = 0; i < _size; i++)
+			{
+				for (int j = 0; j < _size; j++)
+				{
+					if(_values[i,j] > 0){
+						values.Add(Tuple.Create(i, (double)_values[i, j]));
+					}
+				}
+			}
+			
+			//loop through tuples and order rows by max value
+			return values.OrderByDescending(c => c.Item2).Select(c => c.Item1);
+		}
+		
 		public double GetObservedAccuracy()
 		{			
 			int correct = 0;
@@ -105,7 +127,8 @@ namespace GeneTree
 					colTotal += _values[j, i];
 				}
 				
-				if(colTotal > 0){
+				if (colTotal > 0)
+				{
 					_columnsWithData++;
 				}
 				

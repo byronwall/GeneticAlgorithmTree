@@ -1,3 +1,11 @@
 ﻿//this files contains some of the ongoing notes.  things in here should be cleared out and made into Issues or just implemented.
 
 need to take a first shot at the BNP data with a new configuration and test load
+
+allow the split node to select more than just the most traversed node... some sort of prob based on traverse maybe
+
+need some output to indicate where in the sequence things are
+
+avoid sending things through twice
+
+swap is doing the best to help trees out... improve it with better node selection (not random)

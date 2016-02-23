@@ -44,17 +44,25 @@ namespace GeneTree
 					return 0;
 				}				
 				
-				
 				return _matrix.GetKappa() *
 				Math.Pow(this.GetPercentClassified, ga_mgr._gaOptions.eval_class_power) *
-				Math.Pow(1.0 * _matrix._columnsWithData / _matrix._size, ga_mgr._gaOptions.eval_coverage_power);
+				Math.Pow(1.0 * _matrix._columnsWithData / _matrix._size, ga_mgr._gaOptions.eval_coverage_power) *
+				Math.Pow(Math.Log(tree_nodeCount), -0.2);
 			}
 		}
 		
 		public override string ToString()
 		{
-			return string.Format("[GeneticAlgorithmRunResults Score={0}, Kappa={1}, Matrix={2}, Count_allData={3}, Count_classedData={4}]",
-				GetMetricResult, _matrix.GetKappa(), _matrix, count_allData, count_classedData);
+			StringBuilder sb = new StringBuilder();
+			
+			sb.AppendLine(string.Format("[Score={0}]", GetMetricResult));
+			sb.AppendLine(string.Format("[Kappa={0}]", _matrix.GetKappa()));
+			sb.AppendLine(string.Format("[Matrix={0}]", _matrix));
+			sb.AppendLine(string.Format("[Count_allData={0}]", count_allData));
+			sb.AppendLine(string.Format("[Count_classedData={0}]", count_classedData));
+			sb.AppendLine(string.Format("[NodeCount={0}]", tree_nodeCount));
+			
+			return sb.ToString();
 		}
 
 
