@@ -75,6 +75,11 @@ namespace GeneTree
 		
 		private void btnPoolRando_Click(object sender, EventArgs e)
 		{
+			if (bw.IsBusy)
+			{
+				return;
+			}
+			
 			btnPoolRando.Enabled = false;
 			bw.RunWorkerAsync();
 			
@@ -108,6 +113,10 @@ namespace GeneTree
 		void ExitToolStripMenuItemClick(object sender, EventArgs e)
 		{
 			this.Close();
+		}
+		void Btn_dataSummaryClick(object sender, EventArgs e)
+		{
+			Debug.Print(ga_mgr.dataPointMgr.GetSummaryOfClasses());
 		}
 	}
 }

@@ -23,6 +23,12 @@ namespace GeneTree
 			}
 			return _instance;
 		}
+		
+		public static void WriteLine(string format, params object[] objs)
+		{
+			_instance.sb.AppendFormat(format, objs);
+			_instance.sb.AppendLine();
+		}
 
 		public static void WriteLine(string message)
 		{

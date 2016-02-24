@@ -33,6 +33,7 @@ namespace GeneTree
 				var dv = new DataValue();
 				dv._rawValue = value;
 				
+				
 				switch (columns[i]._type)
 				{
 				//TODO abstract this code into multiple classes						
@@ -62,7 +63,8 @@ namespace GeneTree
 							columns[i]._hasMissingValues = true;
 						}
 						
-						dv._value = columns[i]._codebook.GetOrAddValue(value);
+						var dataColumn = columns[i] as CategoryDataColumn;
+						dv._value = dataColumn._codebook.GetOrAddValue(value);
 						
 						if (!isClassification)
 						{

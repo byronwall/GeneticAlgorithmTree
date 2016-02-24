@@ -87,7 +87,7 @@ namespace GeneTree
 			}
 		}
 
-		public double prob_ops_change = 0.9;
+		public double prob_ops_change = 10;
 		public double Prob_ops_change
 		{
 			get
@@ -100,20 +100,20 @@ namespace GeneTree
 			}
 		}
 
-		public double prob_ops_delete = 0.45;
-		public double Prob_ops_delete
+		public double prob_ops_new_tree = 10;
+		public double Prob_ops_new_tree
 		{
 			get
 			{
-				return prob_ops_delete;
+				return prob_ops_new_tree;
 			}
 			set
 			{
-				prob_ops_delete = value;
+				prob_ops_new_tree = value;
 			}
 		}
 
-		public double prob_ops_swap = 0.2;
+		public double prob_ops_swap = 20;
 		public double Prob_ops_swap
 		{
 			get
@@ -125,7 +125,7 @@ namespace GeneTree
 				prob_ops_swap = value;
 			}
 		}
-		public double prob_node_split = 0.5;
+		public double prob_node_split = 20;
 
 		public double Prob_node_split
 		{

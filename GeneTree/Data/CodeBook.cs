@@ -9,9 +9,17 @@ namespace GeneTree
 	{
 		Dictionary<string, double> _mappings = new Dictionary<string, double>();
 
+		public IEnumerable<string> GetCategoryNames(){
+			return _mappings.Keys;
+		}
+		
 		public double GetMapping(string value)
 		{
 			return _mappings[value];
+		}
+		
+		public IEnumerable<double> GetCategories(){
+			return this._mappings.Values;
 		}
 
 		public double GetOrAddValue(string rawValue)

@@ -83,18 +83,12 @@ namespace GeneTree
 				
 				_columns.Add(dc);
 			}			
-			
 		}
 
 		public void DetermineClasses()
 		{
 			//TODO get rid of this method.  it does not seem necessary
 			classes = _dataPoints.GroupBy(x => x._classification._value).Select(x => x.Key).ToArray();
-			
-			foreach (var _class in _dataPoints.GroupBy(x => x._classification._value))
-			{
-				
-			} 
 		}
         
 		public void LoadFromCsv(string path)
@@ -132,6 +126,18 @@ namespace GeneTree
 			//create classes and ranges
 			DetermineClasses();
 		}
+		
+		public string GetSummaryOfClasses()
+		{
+			StringBuilder sb = new StringBuilder();
+			
+			sb.AppendLine("all columns summarized:");
+			
+			foreach (var column in _columns) {
+				sb.AppendLine(column.ToString());
+			}
+			
+			return sb.ToString();
+		}
 	}
-	
 }

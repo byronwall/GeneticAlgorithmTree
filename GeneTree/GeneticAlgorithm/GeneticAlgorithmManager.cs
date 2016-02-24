@@ -54,7 +54,7 @@ namespace GeneTree
 			//HACK: data update only at start to ensure that trees are improving on same data
 			dataPointMgr.UpdateSubsetOfDatapoints(_gaOptions.prob_to_keep_data, rando);
 			
-			for (int j = 0; j < _gaOptions.seq_outer_run; j++)
+			for (int outer_run = 0; outer_run < _gaOptions.seq_outer_run; outer_run++)
 			{
 				List<Tree> keepers = new List<Tree>();
 				
@@ -63,8 +63,10 @@ namespace GeneTree
 				
 				for (int run = 0; run < _gaOptions.seq_inner_run; run++)
 				{
+					Logger.WriteLine("starting run at generation {0} in outer run {1}", run, outer_run);
+					
 					var trees = ProcessTheNextGeneration();
-					trees[0].WriteToXmlFile(Path.Combine(new_dir.FullName, string.Format("{0} - {1}.xml", j, run)));
+					trees[0].WriteToXmlFile(Path.Combine(new_dir.FullName, string.Format("{0} - {1}.xml", outer_run, run)));
 					keepers.AddRange(trees);
 				}
 				
@@ -194,35 +196,21 @@ namespace GeneTree
 					}
 				}
 				
+				//this allows probs to change after each generation if desired
+				var operations = new List<Tuple<GeneticOperations.GeneticOperation, double>>();
+					
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SwapNodesBetweenTrees, _gaOptions.Prob_ops_swap));
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SplitNodeWithMostPopularClasses, _gaOptions.prob_node_split));
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.ChangeValueForNode, _gaOptions.prob_ops_change));
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.CreateRandomTree, _gaOptions.Prob_ops_new_tree));
+					
+				var operation_picker = new WeightedSelector<GeneticOperations.GeneticOperation>(operations);
+				
 				
 				for (int populationNumber = 0; populationNumber < _gaOptions.populationSize; populationNumber++)
 				{
-					double tester = rando.NextDouble();
-					
-					//TODO move this into a better structure to handle the repetitive nature and common signature
-					//TODO change out probabilities for some other number that can handle new additions without breaking (size of pie algorithm)
-					
-					if (tester < _gaOptions.prob_ops_swap)
-					{
-						newCreations.AddRange(GeneticOperations.SwapNodesBetweenTrees(this, treesInPopulation));
-					}
-					else if (tester < _gaOptions.prob_node_split)
-					{
-						newCreations.AddRange(GeneticOperations.SplitNodeWithMostPopularClasses(this, treesInPopulation));
-					}
-					//TODO deletion looks suspect
-					else if (false && tester < _gaOptions.prob_ops_delete)
-					{
-						newCreations.AddRange(GeneticOperations.DeleteNodeFromTree(this, treesInPopulation));
-					}
-					else if (tester < _gaOptions.prob_ops_change)
-					{
-						newCreations.AddRange(GeneticOperations.ChangeValueForNode(this, treesInPopulation));
-					}
-					else
-					{
-						newCreations.AddRange(GeneticOperations.CreateRandomTree(this, treesInPopulation));
-					}
+					var operation = operation_picker.PickRandom(rando);
+					newCreations.AddRange(operation(this, treesInPopulation));
 				}
 				
 				//moves things to the master list

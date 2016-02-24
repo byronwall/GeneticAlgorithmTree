@@ -82,7 +82,7 @@ namespace GeneTree
 			return sb.ToString();
 		}
 		
-		public IEnumerable<int> GetRowsOrderedByCount()
+		public IEnumerable<Tuple<int,double>> GetRowsOrderedByCount()
 		{
 			
 			//will be row, value
@@ -99,7 +99,7 @@ namespace GeneTree
 			}
 			
 			//loop through tuples and order rows by max value
-			return values.OrderByDescending(c => c.Item2).Select(c => c.Item1);
+			return values;
 		}
 		
 		public double GetObservedAccuracy()

@@ -2,10 +2,17 @@
 
 need to take a first shot at the BNP data with a new configuration and test load
 
-allow the split node to select more than just the most traversed node... some sort of prob based on traverse maybe
+consider letting the less than test pick a value instead of doing min/max test
 
-need some output to indicate where in the sequence things are
+normalize doubledatacolumn results
 
-avoid sending things through twice
+track score over time for different generations and plot the results (look for when/where they top out)
 
-swap is doing the best to help trees out... improve it with better node selection (not random)
+new trees should be allowed to make genetic changes without having to survive first... get some more randomness into things
+
+might be good to look for low performing nodes and make changes to them (could just NO CLASS to get rid of bad ones)
+
+do some analysis to determine which data columns are showing up most frequently for analysis
+ - continue this to see which columns do best for predicting which class?
+
+get an output of categories to look into feature engineering options

@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Windows.Forms;
 using MoreLinq;
@@ -12,6 +13,8 @@ namespace GeneTree
 {
 	public static class GeneticOperations
 	{
+		public delegate IEnumerable<Tree> GeneticOperation(GeneticAlgorithmManager ga_mgr, List<Tree> treesInPopulation);
+		
 		public static IEnumerable<Tree> SwapNodesBetweenTrees(GeneticAlgorithmManager ga_mgr, List<Tree> treesInPopulation)
 		{
 			Random rando = ga_mgr.rando;
@@ -19,14 +22,24 @@ namespace GeneTree
 			Tree tree1 = treesInPopulation[rando.Next(treesInPopulation.Count())];
 			Tree tree2 = treesInPopulation[rando.Next(treesInPopulation.Count())];
 			
+			tree1.SetStructuralLocationsForNodes();
+			tree2.SetStructuralLocationsForNodes();
+			
 			Tree tree1_copy = tree1.Copy();
 			Tree tree2_copy = tree2.Copy();
 			
 			tree1_copy._source = "swap";
 			tree2_copy._source = "swap";
 			
-			TreeNode node1 = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
-			TreeNode node2 = tree2_copy._nodes[rando.Next(tree2_copy._nodes.Count)];
+			//tries to pick good nodes to swap around			
+			var tree1_node_picker = new WeightedSelector<TreeNode>(
+				                        tree1._nodes.Select(c => Tuple.Create(c, c.matrix.GetObservedAccuracy()+0.00001)));
+			
+			var tree2_node_picker = new WeightedSelector<TreeNode>(
+				                        tree2._nodes.Select(c => Tuple.Create(c, c.matrix.GetObservedAccuracy()+0.00001)));
+			
+			TreeNode node1 = tree1_copy.GetNodeAtStructualLocation(tree1_node_picker.PickRandom(ga_mgr.rando)._structuralLocation);
+			TreeNode node2 = tree2_copy.GetNodeAtStructualLocation(tree2_node_picker.PickRandom(ga_mgr.rando)._structuralLocation);
 			
 			TreeNode.SwapNodesInTrees(node1, node2);
 			
@@ -85,14 +98,19 @@ namespace GeneTree
 		{
 			//find a grab a tree
 			Tree tree1 = treesInPopulation[ga_mgr.rando.Next(treesInPopulation.Count())];
-			TreeNode node1 = tree1.GetNodesOfType<ClassificationTreeNode>().MaxBy(c => c._traverseCount);
+			
+			//uses the traversal count for selecting
+			var node_picker = new WeightedSelector<ClassificationTreeNode>(
+				                  tree1.GetNodesOfType<ClassificationTreeNode>().Select(c => Tuple.Create(c, (double)c._traverseCount))
+			                  );
+			
+			ClassificationTreeNode node1 = node_picker.PickRandom(ga_mgr.rando);
 			tree1.SetStructuralLocationsForNodes();
 			var matrix_rows = node1.matrix.GetRowsOrderedByCount().ToList();
 			
 			//trap is here in case there are fewer than 2 "top" rows to split on
 			if (matrix_rows.Count >= 2)
 			{
-			
 				//TODO improve this structural business to be cleaner and more obvious if it belongs to the Node or Tree
 				Tree tree1_copy = tree1.Copy();			
 				TreeNode node1_copy = tree1_copy.GetNodeAtStructualLocation(node1._structuralLocation);
@@ -106,14 +124,24 @@ namespace GeneTree
 				node1_decision.matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
 				node1_decision._parent = node1_copy._parent;
 				
+				var class_picker = new WeightedSelector<int>(matrix_rows);
+				
+				var item1 = node1.Classification;
+				var item2 = class_picker.PickRandom(ga_mgr.rando);
+				
+				while (item1 == item2)
+				{
+					item2 = class_picker.PickRandom(ga_mgr.rando);
+				}
+				
 				//create the two classification nodes
 				var node1a_class = new ClassificationTreeNode();
-				node1a_class.Classification = matrix_rows[0];
+				node1a_class.Classification = item1;
 				node1a_class.matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
 				node1a_class._parent = node1_decision;
 				
 				var node1b_class = new ClassificationTreeNode();
-				node1b_class.Classification = matrix_rows[1];
+				node1b_class.Classification = item2;
 				node1b_class.matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
 				node1b_class._parent = node1_decision;
 				
