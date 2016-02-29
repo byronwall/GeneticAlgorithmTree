@@ -25,7 +25,14 @@ namespace GeneTree
 
 		public override bool isTrueTest(DataPoint point)
 		{
-			return point._data[param]._value <= valTest;
+			try
+			{
+				return point._data[param]._value <= valTest;
+			}
+			catch (Exception e)
+			{
+				return false;	
+			}
 		}
 
 		public override string ToString()

@@ -146,6 +146,13 @@ namespace GeneTree
 
 		public List<Tree> ProcessTheNextGeneration(List<Tree> treesInPopulation)
 		{
+			//add a bunch of random columns for testing (1:1) for now
+			int count_generated_features = dataPointMgr._columns.Count*5;
+			
+			for (int i = 0; i < count_generated_features; i++) {
+				dataPointMgr._columns.Add(GeneratedDataColumn.CreateNewRandom(this));
+			}
+			
 			//TODO add a step to check for "convergence" and stop iterating
 			for (int generationNumber = 0; generationNumber < _gaOptions.generations; generationNumber++)
 			{

@@ -17,14 +17,6 @@ namespace GeneTree
 		
 		public List<int> classCounts = new List<int>();
 		
-		public int DataColumnCount
-		{
-			get
-			{
-				return _columns.Count - 1;
-			}
-		}
-		
 		public double GetRandomClassification(Random rando)
 		{
 			double prob_of_no_class = 0.2;
@@ -62,7 +54,8 @@ namespace GeneTree
 		public void SetConfiguration(string config_path)
 		{			
 			_config = DataPointConfiguration.LoadFromFile(config_path);
-
+			
+			
 			foreach (var column in _config._types)
 			{
 				//TODO get rid of this switch... push it into the data column as a static factory or such
@@ -82,7 +75,7 @@ namespace GeneTree
 				dc._header = column.Key;
 				
 				_columns.Add(dc);
-			}			
+			}
 		}
 
 		public void DetermineClasses()
@@ -117,6 +110,9 @@ namespace GeneTree
 				DataPoint dp = DataPoint.FromString(values, _columns);								
 				_dataPoints.Add(dp);
 			}
+			
+			//remove the last column since it is classification
+			_columns.RemoveAt(_columns.Count - 1);
 
 			foreach (var column in _columns)
 			{
@@ -133,7 +129,8 @@ namespace GeneTree
 			
 			sb.AppendLine("all columns summarized:");
 			
-			foreach (var column in _columns) {
+			foreach (var column in _columns)
+			{
 				sb.AppendLine(column.ToString());
 			}
 			

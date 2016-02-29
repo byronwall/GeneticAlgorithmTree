@@ -34,7 +34,7 @@ namespace GeneTree
 		{			
 			//TODO clean up this mess once the DataColumns quit using the TYPE part
 			
-			var col_param = rando.Next(dataPointMgr.DataColumnCount);
+			var col_param = rando.Next(dataPointMgr._columns.Count);
 			DataColumn column = dataPointMgr._columns[col_param];
 			
 			double prob_missing_test = 0.3;
