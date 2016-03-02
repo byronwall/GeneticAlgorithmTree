@@ -7,8 +7,11 @@
  * To change this template use Tools | Options | Coding | Edit Standard Headers.
  */
 using System;
-using GeneTree;
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
+using GeneTree;
+
 
 namespace GeneTreeTests
 {
@@ -28,6 +31,24 @@ namespace GeneTreeTests
 			cm._count = 50;
 			
 			string test = cm.ToString();
+		}
+		
+		[Test]
+		public void WeightedSel()
+		{
+			List<int> choices = new List<int>{ 1, 2, 3, 4 };
+			
+			var choice_chooser = new WeightedSelector<int>(choices.Select(c => Tuple.Create(c, c * 1.0)));
+			
+			Random rando = new Random();
+			
+			List<int> outputs = new List<int>();
+			
+			for (int i = 0; i < 10000; i++) {
+				outputs.Add(choice_chooser.PickRandom(rando));
+			}
+			
+			var groups = string.Join("|", outputs.GroupBy(c => c).Select((c, d) => c.Key + " " + c.Count()));
 		}
 	}
 }

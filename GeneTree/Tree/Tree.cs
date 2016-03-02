@@ -177,7 +177,7 @@ namespace GeneTree
 			while (nodes_to_process.Count > 0)
 			{
 				TreeNode node = nodes_to_process.Pop();
-				//TODO determine why this line will fail at times
+				//TODO determine why this line will fail at times... seems to be related to root nodes
 				Debug.Assert(node._traverseCount == 0);
 				
 				foreach (var subNode in node._subNodes)
@@ -312,7 +312,9 @@ namespace GeneTree
 			finally
 			{
 				if (reader != null)
+				{
 					reader.Close();
+				}
 			}
 		}
 	}

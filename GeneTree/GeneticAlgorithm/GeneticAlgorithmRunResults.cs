@@ -46,8 +46,7 @@ namespace GeneTree
 				
 				return _matrix.GetKappa() *
 				Math.Pow(this.GetPercentClassified, ga_mgr._gaOptions.eval_class_power) *
-				Math.Pow(1.0 * _matrix._columnsWithData / _matrix._size, ga_mgr._gaOptions.eval_coverage_power) *
-				Math.Pow(Math.Log(tree_nodeCount), -0.2);
+				Math.Pow(Math.Log(tree_nodeCount), ga_mgr._gaOptions.eval_node_count);
 			}
 		}
 		
@@ -57,6 +56,7 @@ namespace GeneTree
 			
 			sb.AppendLine(string.Format("[Score={0}]", GetMetricResult));
 			sb.AppendLine(string.Format("[Kappa={0}]", _matrix.GetKappa()));
+			sb.AppendLine(string.Format("[PercClassed={0:0.000}]", GetPercentClassified));
 			sb.AppendLine(string.Format("[Matrix={0}]", _matrix));
 			sb.AppendLine(string.Format("[Count_allData={0}]", count_allData));
 			sb.AppendLine(string.Format("[Count_classedData={0}]", count_classedData));

@@ -54,6 +54,13 @@ namespace GeneTree
 			}
 		}
 	}
+	public static class WeightedSelector
+	{
+		public static WeightedSelector<T> Create<T>(IEnumerable<Tuple<T,double>> listItems)
+		{
+			return new WeightedSelector<T>(listItems);
+		}
+	}
 }
 
 

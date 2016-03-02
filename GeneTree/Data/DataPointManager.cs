@@ -131,7 +131,7 @@ namespace GeneTree
 			
 			foreach (var column in _columns)
 			{
-				sb.AppendLine(column.ToString());
+				sb.AppendLine(column.GetSummaryString());
 			}
 			
 			return sb.ToString();

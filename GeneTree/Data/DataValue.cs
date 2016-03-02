@@ -9,8 +9,6 @@ namespace GeneTree
 	{
 		public bool _isMissing;
 		public double _value;
-		public string _rawValue;
-		public DataColumn _parent;
 	}
 }
 

@@ -33,10 +33,10 @@ namespace GeneTree
 			
 			//tries to pick good nodes to swap around			
 			var tree1_node_picker = new WeightedSelector<TreeNode>(
-				                        tree1._nodes.Select(c => Tuple.Create(c, c.matrix.GetObservedAccuracy()+0.00001)));
+				                        tree1._nodes.Select(c => Tuple.Create(c, c._traverseCount * (c.matrix.GetObservedAccuracy() + 0.00001))));
 			
 			var tree2_node_picker = new WeightedSelector<TreeNode>(
-				                        tree2._nodes.Select(c => Tuple.Create(c, c.matrix.GetObservedAccuracy()+0.00001)));
+				                        tree2._nodes.Select(c => Tuple.Create(c, c._traverseCount * (c.matrix.GetObservedAccuracy() + 0.00001))));
 			
 			TreeNode node1 = tree1_copy.GetNodeAtStructualLocation(tree1_node_picker.PickRandom(ga_mgr.rando)._structuralLocation);
 			TreeNode node2 = tree2_copy.GetNodeAtStructualLocation(tree2_node_picker.PickRandom(ga_mgr.rando)._structuralLocation);
@@ -54,18 +54,22 @@ namespace GeneTree
 			}
 		}
 
-		[Obsolete]
 		public static IEnumerable<Tree> DeleteNodeFromTree(GeneticAlgorithmManager ga_mgr, List<Tree> treesInPopulation)
 		{
 			//node deletion
 			Random rando = ga_mgr.rando;
 			Tree tree1 = treesInPopulation[rando.Next(treesInPopulation.Count())];
 			Tree tree1_copy = tree1.Copy();
+			
 			TreeNode node1 = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
+			
 			TreeNode node1_rando_term = TreeNode.TreeNodeFactory(ga_mgr, true, tree1_copy);
 			//stick the new node into the old one's spot
+			
 			node1_rando_term._parent = node1._parent;
+			
 			tree1_copy.RemoveNodeWithChildren(node1);
+			
 			if (node1_rando_term._parent != null && tree1_copy._nodes.Count > 0)
 			{
 				node1_rando_term._parent.UpdateChildReference(node1, node1_rando_term);
@@ -119,7 +123,8 @@ namespace GeneTree
 				//determine the two most popular classes from there (rows in the confusion table)
 				//create a random test for the current node (change from classification to decision)
 				//TODO create a proper factory for this code
-				var node1_decision = new DecisionTreeNode();
+				var node1_decision = new YesNoMissingTreeNode();
+				
 				node1_decision.CreateRandom(ga_mgr);
 				node1_decision.matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
 				node1_decision._parent = node1_copy._parent;
@@ -134,6 +139,8 @@ namespace GeneTree
 					item2 = class_picker.PickRandom(ga_mgr.rando);
 				}
 				
+				var item3 = 0;
+				
 				//create the two classification nodes
 				var node1a_class = new ClassificationTreeNode();
 				node1a_class.Classification = item1;
@@ -145,8 +152,14 @@ namespace GeneTree
 				node1b_class.matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
 				node1b_class._parent = node1_decision;
 				
+				var node1c_class = new ClassificationTreeNode();
+				node1c_class.Classification = item3;
+				node1c_class.matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
+				node1c_class._parent = node1_decision;
+				
 				node1_decision._trueNode = node1a_class;
 				node1_decision._falseNode = node1b_class;
+				node1_decision._missingNode = node1c_class;
 				
 				//add the two nodes with the most popular classes
 				//TODO create a "replace node" operation to standardize this code

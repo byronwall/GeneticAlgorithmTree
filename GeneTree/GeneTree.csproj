@@ -18,7 +18,7 @@
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>Full</DebugType>
     <Optimize>False</Optimize>
@@ -39,11 +39,13 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <StartAction>Project</StartAction>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
     <BaseAddress>4194304</BaseAddress>
     <RegisterForComInterop>False</RegisterForComInterop>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <Prefer32Bit>True</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MoreLinq">
@@ -73,6 +75,7 @@
     <Compile Include="Data\DataPointManager.cs" />
     <Compile Include="Data\DataValue.cs" />
     <Compile Include="Data\DoubleDataColumn.cs" />
+    <Compile Include="Data\GeneratedDataColumn.cs" />
     <Compile Include="EventArg.cs" />
     <Compile Include="GeneticAlgorithm\GeneticAlgorithmManager.cs" />
     <Compile Include="GeneticAlgorithm\GeneticAlgorithmOptions.cs" />
@@ -98,6 +101,7 @@
     <Compile Include="Tree\Tree.cs" />
     <Compile Include="Tree\TreeNode.cs" />
     <Compile Include="Tree\TreeTest.cs" />
+    <Compile Include="Tree\YesNoMissingTreeNode.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

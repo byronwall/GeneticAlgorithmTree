@@ -109,11 +109,15 @@ namespace GeneTree
 					
 					foreach (var node in tree.GetNodesOfType<ClassificationTreeNode>())
 					{
-						var best_class = node.matrix.GetRowWithMaxCount();
-						if (node.Classification != best_class)
+						//TODO subclass the empty node to avoid these sorts of issues
+						if (node.Classification != -1)
 						{
-							node.Classification = best_class;
-							processAgain = true;
+							var best_class = node.matrix.GetRowWithMaxCount();
+							if (node.Classification != best_class)
+							{
+								node.Classification = best_class;
+								processAgain = true;
+							}
 						}
 					}
 				}
@@ -140,14 +144,14 @@ namespace GeneTree
 		
 		public List<Tree> ProcessTheNextGeneration()
 		{
-			var starter = CreateRandomPoolOfTrees(_gaOptions.populationSize);
+			var starter = CreateRandomPoolOfTrees(_gaOptions.populationSize*5);
 			return ProcessTheNextGeneration(starter);
 		}
 
 		public List<Tree> ProcessTheNextGeneration(List<Tree> treesInPopulation)
 		{
 			//add a bunch of random columns for testing (1:1) for now
-			int count_generated_features = dataPointMgr._columns.Count*5;
+			int count_generated_features = dataPointMgr._columns.Count*0;
 			
 			for (int i = 0; i < count_generated_features; i++) {
 				dataPointMgr._columns.Add(GeneratedDataColumn.CreateNewRandom(this));
@@ -183,8 +187,6 @@ namespace GeneTree
 					Logger.WriteLine(tree._prevResults.GetMetricResult);
 				}
 				
-				
-				
 				foreach (var tree in treesInPopulation.Take(1))
 				{
 					Logger.WriteLine("");
@@ -210,6 +212,7 @@ namespace GeneTree
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SplitNodeWithMostPopularClasses, _gaOptions.prob_node_split));
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.ChangeValueForNode, _gaOptions.prob_ops_change));
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.CreateRandomTree, _gaOptions.Prob_ops_new_tree));
+				//operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.DeleteNodeFromTree, _gaOptions.prob_ops_delete));
 					
 				var operation_picker = new WeightedSelector<GeneticOperations.GeneticOperation>(operations);
 				

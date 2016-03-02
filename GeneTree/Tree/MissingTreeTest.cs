@@ -17,6 +17,7 @@ namespace GeneTree
 		{
 			var test_copy = new MissingTreeTest();
 			test_copy._param = this._param;
+			test_copy._testCol = this._testCol;
 			return test_copy;
 		}
 

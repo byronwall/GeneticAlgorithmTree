@@ -15,4 +15,21 @@ might be good to look for low performing nodes and make changes to them (could j
 do some analysis to determine which data columns are showing up most frequently for analysis
  - continue this to see which columns do best for predicting which class?
 
-get an output of categories to look into feature engineering options
+need to check for instances where the same test shows up below a node in the tree
+ - this also occurs when both terminal nodes point to the same thing
+
+need to see which generated features show up in the tree... keep those and generate more (GA for features almost)
+
+need a quick way to remove features from the data (ideally w/o removing original data)
+
+determine why the NO CLASS is not getting used as before (problem with percent classed)?
+
+only compute calcualtedcolumns on the test data... save the formula to use for other values as needed
+
+possible to group categories since the data is ordinal?  maybe not useful now, but good to remember
+
+recreate the delete node option (force class to NO CLASS)
+
+default to the BNP data
+
+go to 3 digits on doubles by default (outputs)

@@ -4,10 +4,7 @@ namespace GeneTree
 {
 	public class GeneticAlgorithmOptions
 	{
-		
-
 		public double eval_percentClass_min = 0.1;
-
 		public double Eval_percentClass_min
 		{
 			get
@@ -20,8 +17,7 @@ namespace GeneTree
 			}
 		}
 
-		public double eval_class_power = 0.1;
-
+		public double eval_class_power = 0.00;
 		public double Eval_class_power
 		{
 			get
@@ -34,17 +30,16 @@ namespace GeneTree
 			}
 		}
 
-		public double eval_coverage_power = 0.1;
-
-		public double Eval_coverage_power
+		public double eval_node_count = -0.01;
+		public double Eval_Node_Count
 		{
 			get
 			{
-				return eval_coverage_power;
+				return eval_node_count;
 			}
 			set
 			{
-				eval_coverage_power = value;
+				eval_node_count = value;
 			}
 		}
 		
@@ -99,7 +94,7 @@ namespace GeneTree
 				prob_ops_change = value;
 			}
 		}
-
+		
 		public double prob_ops_new_tree = 10;
 		public double Prob_ops_new_tree
 		{
@@ -110,6 +105,19 @@ namespace GeneTree
 			set
 			{
 				prob_ops_new_tree = value;
+			}
+		}
+
+		public double prob_ops_delete = 10;
+		public double Prob_Ops_Delete
+		{
+			get
+			{
+				return prob_ops_delete;
+			}
+			set
+			{
+				prob_ops_delete = value;
 			}
 		}
 
@@ -125,8 +133,8 @@ namespace GeneTree
 				prob_ops_swap = value;
 			}
 		}
-		public double prob_node_split = 20;
-
+		
+		public double prob_node_split = 40;
 		public double Prob_node_split
 		{
 			get
@@ -165,7 +173,7 @@ namespace GeneTree
 			}
 		}
 
-		public int max_node_count_for_new_tree = 15;
+		public int max_node_count_for_new_tree = 10;
 		public int Max_node_count_for_new_tree
 		{
 			get

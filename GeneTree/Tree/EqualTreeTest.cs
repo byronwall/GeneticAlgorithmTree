@@ -12,7 +12,6 @@ namespace GeneTree
 	{
 		//TODO create a test for doing group subset or a multi group test, ensure that not all groups end up in it, N-1 max
 		public double _valTest;
-
 		public int _param;
 
 		#region implemented abstract members of TreeTest
@@ -21,12 +20,18 @@ namespace GeneTree
 			var test_copy = new EqualTreeTest();
 			test_copy._param = this._param;
 			test_copy._valTest = this._valTest;
+			test_copy._testCol = this._testCol;
 			return test_copy;
 		}
 
 		public override bool isTrueTest(DataPoint point)
 		{
 			return point._data[_param]._value == _valTest;
+		}
+		
+		public override bool IsMissingTest(DataPoint point)
+		{
+			return point._data[_param]._isMissing;
 		}
 
 		#endregion

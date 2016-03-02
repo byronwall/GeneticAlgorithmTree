@@ -18,8 +18,16 @@ namespace GeneTree
 	{
 		public virtual bool CanChangeValue{ get { return false; } }
 		
+		[XmlIgnore]
+		public DataColumn _testCol;
+		
 		public abstract TreeTest Copy();
 		public abstract bool isTrueTest(DataPoint point);
+		public virtual bool IsMissingTest(DataPoint point)
+		{
+			return false;
+		}
+		
 		public virtual bool ChangeTestValue(GeneticAlgorithmManager mgr)
 		{
 			return false;
@@ -30,31 +38,39 @@ namespace GeneTree
 			return TreeTestFactory(ga_mgr.dataPointMgr, ga_mgr.rando);
 		}
 		
+		
 		public static TreeTest TreeTestFactory(DataPointManager dataPointMgr, Random rando)
-		{			
+		{
+			//TODO this shoudl take a ga_mgr instead of the parts
 			//TODO clean up this mess once the DataColumns quit using the TYPE part
+			
+			TreeTest output;
 			
 			var col_param = rando.Next(dataPointMgr._columns.Count);
 			DataColumn column = dataPointMgr._columns[col_param];
 			
-			double prob_missing_test = 0.3;
+			double prob_missing_test = 0.4;
 			double prob_test_category_subset = 0.25;
 			
-			if (column._hasMissingValues && rando.NextDouble() < prob_missing_test)
+			//TODO prob missing should be a part of ga_mgr
+			//TODO this is currently bypassed
+			if (false && column._hasMissingValues && rando.NextDouble() < prob_missing_test)
 			{
 				MissingTreeTest test = new MissingTreeTest();
-				test._param = col_param;					
+				test._param = col_param;
 				return test;
 			}
 			
 			switch (column._type)
 			{
-				case DataColumn.DataValueTypes.NUMBER:					
+				case DataColumn.DataValueTypes.NUMBER:
 					LessThanEqualTreeTest test = new LessThanEqualTreeTest();
-					test.param = col_param;					
+					test.param = col_param;
 					test.valTest = column.GetTestValue(rando);
-					return test;
-				case DataColumn.DataValueTypes.CATEGORY: 
+					output = test;
+					
+					break;
+				case DataColumn.DataValueTypes.CATEGORY:
 					var cat_column = column as CategoryDataColumn;
 					
 					var categories = cat_column._codebook.GetCategories();
@@ -70,18 +86,23 @@ namespace GeneTree
 						int categories_to_keep = 2 + rando.Next(category_count - 2);
 						subset_test._values.AddRange(categories.OrderBy(c => rando.NextDouble()).Take(categories_to_keep));
 						
-						return subset_test;
+						output = subset_test;
+						break;
 					}
 					else
 					{
-						EqualTreeTest test_eq = new EqualTreeTest();					
-						test_eq._param = col_param;					
+						EqualTreeTest test_eq = new EqualTreeTest();
+						test_eq._param = col_param;
 						test_eq._valTest = column.GetTestValue(rando);
-						return test_eq;
+						output = test_eq;
+						break;
 					}
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+			
+			output._testCol = column;
+			return output;
 		}
 	}
 }

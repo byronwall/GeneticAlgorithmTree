@@ -11,7 +11,6 @@ namespace GeneTree
 	public class LessThanEqualTreeTest : TreeTest
 	{
 		public int param;
-
 		public double valTest;
 
 		//TODO add the ability to test against another value in the data, will work against the balance scale data
@@ -20,7 +19,13 @@ namespace GeneTree
 			LessThanEqualTreeTest test_copy = new LessThanEqualTreeTest();
 			test_copy.param = this.param;
 			test_copy.valTest = this.valTest;
+			test_copy._testCol = this._testCol;
 			return test_copy;
+		}
+		
+		public override bool IsMissingTest(DataPoint point)
+		{
+			return point._data[param]._isMissing;
 		}
 
 		public override bool isTrueTest(DataPoint point)
@@ -29,7 +34,7 @@ namespace GeneTree
 			{
 				return point._data[param]._value <= valTest;
 			}
-			catch (Exception e)
+			catch
 			{
 				return false;	
 			}
@@ -37,7 +42,7 @@ namespace GeneTree
 
 		public override string ToString()
 		{
-			return string.Format("{0} <= {1}", param, valTest);
+			return string.Format("{0} <= {1:0.00}", _testCol, valTest);
 		}
 
 		public override bool ChangeTestValue(GeneticAlgorithmManager mgr)

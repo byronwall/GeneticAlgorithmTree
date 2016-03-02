@@ -14,7 +14,14 @@ namespace GeneTree
 		public override double GetTestValue(Random rando)
 		{
 			//pick a random value from the values
-			return _values[rando.Next(_values.Count)]._value;
+			if (rando.NextDouble() < 0.05)
+			{
+				return -1;
+			}
+			else
+			{
+				return _values[rando.Next(_values.Count)]._value;
+			}
 		}
 
 		public CategoryDataColumn()
@@ -23,7 +30,7 @@ namespace GeneTree
 			this._type = DataValueTypes.CATEGORY;
 		}
 		
-		public override string ToString()
+		public override string GetSummaryString()
 		{
 			return string.Format("[CategoryDataColumn Header={0}, Categories={1}]", this._header, 
 				this._codebook.GetCategoryNames().ToDelimitedString(","));

@@ -15,6 +15,7 @@ namespace GeneTree
 	[Serializable]
 	[XmlInclude(typeof(DecisionTreeNode))]
 	[XmlInclude(typeof(ClassificationTreeNode))]
+	[XmlInclude(typeof(YesNoMissingTreeNode))]
 	public abstract class TreeNode
 	{
 		[XmlIgnore]
@@ -92,7 +93,7 @@ namespace GeneTree
 			}
 			else
 			{
-				var node = new DecisionTreeNode();
+				var node = new YesNoMissingTreeNode();
 				node.CreateRandom(ga_mgr);
 				
 				node_output = node;

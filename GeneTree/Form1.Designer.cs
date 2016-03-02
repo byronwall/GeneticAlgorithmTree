@@ -48,6 +48,7 @@
         	this.txt_status = new System.Windows.Forms.TextBox();
         	this.prop_gaOptions = new System.Windows.Forms.PropertyGrid();
         	this.btn_dataSummary = new System.Windows.Forms.Button();
+        	this.button2 = new System.Windows.Forms.Button();
         	this.statusStrip1.SuspendLayout();
         	this.menuStrip1.SuspendLayout();
         	this.SuspendLayout();
@@ -122,7 +123,7 @@
         	this.button1.Name = "button1";
         	this.button1.Size = new System.Drawing.Size(75, 23);
         	this.button1.TabIndex = 8;
-        	this.button1.Text = "button1";
+        	this.button1.Text = "iris data";
         	this.button1.UseVisualStyleBackColor = true;
         	this.button1.Click += new System.EventHandler(this.Button1Click);
         	// 
@@ -224,6 +225,16 @@
         	this.btn_dataSummary.UseVisualStyleBackColor = true;
         	this.btn_dataSummary.Click += new System.EventHandler(this.Btn_dataSummaryClick);
         	// 
+        	// button2
+        	// 
+        	this.button2.Location = new System.Drawing.Point(93, 39);
+        	this.button2.Name = "button2";
+        	this.button2.Size = new System.Drawing.Size(75, 23);
+        	this.button2.TabIndex = 8;
+        	this.button2.Text = "bnp data";
+        	this.button2.UseVisualStyleBackColor = true;
+        	this.button2.Click += new System.EventHandler(this.Button2Click);
+        	// 
         	// Form1
         	// 
         	this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -234,6 +245,7 @@
         	this.Controls.Add(this.txt_status);
         	this.Controls.Add(this.statusStrip1);
         	this.Controls.Add(this.menuStrip1);
+        	this.Controls.Add(this.button2);
         	this.Controls.Add(this.button1);
         	this.Controls.Add(this.btn_loadWithConfig);
         	this.Controls.Add(this.btn_configDefault);
@@ -276,6 +288,7 @@
         private System.Windows.Forms.TextBox txt_status;
         private System.Windows.Forms.PropertyGrid prop_gaOptions;
         private System.Windows.Forms.Button btn_dataSummary;
+        private System.Windows.Forms.Button button2;
     }
 }
 

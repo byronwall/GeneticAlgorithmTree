@@ -11,21 +11,26 @@ using System.Xml.Serialization;
 namespace GeneTree
 {
 	[Serializable]
-	public class DecisionTreeNode : TreeNode
+	public class YesNoMissingTreeNode : TreeNode
 	{
 		public override bool TraverseData(DataPoint point, GeneticAlgorithmRunResults results)
 		{
 			this._traverseCount++;
-			
-			return this.Test.isTrueTest(point) ?
-				this._trueNode.TraverseData(point, results) :
-				this._falseNode.TraverseData(point, results);
+			if (this.Test.IsMissingTest(point))
+			{
+				return this._missingNode.TraverseData(point, results);
+			}
+			return this.Test.isTrueTest(point) ? this._trueNode.TraverseData(point, results) : this._falseNode.TraverseData(point, results);
 		}
 
 		public TreeTest Test;
+
 		public TreeNode _trueNode;
+
 		public TreeNode _falseNode;
-		
+
+		public TreeNode _missingNode;
+
 		public override bool IsTerminal
 		{
 			get
@@ -38,9 +43,10 @@ namespace GeneTree
 		{
 			this._trueNode = TreeNode.TreeNodeFactory(ga_mgr, false, this._tree);
 			this._trueNode._parent = this;
-			
 			this._falseNode = TreeNode.TreeNodeFactory(ga_mgr, false, this._tree);
 			this._falseNode._parent = this;
+			this._missingNode = TreeNode.TreeNodeFactory(ga_mgr, false, this._tree);
+			this._missingNode._parent = this;
 		}
 
 		public override void ApplyRandomChangeToNodeValue(GeneticAlgorithmManager ga_mgr)
@@ -66,11 +72,18 @@ namespace GeneTree
 				_trueNode = newRef;
 				return true;
 			}
-			else if (curRef == _falseNode)
-			{
-				_falseNode = newRef;
-				return true;
-			}
+			else
+				if (curRef == _falseNode)
+				{
+					_falseNode = newRef;
+					return true;
+				}
+				else
+					if (curRef == _missingNode)
+					{
+						_missingNode = newRef;
+						return true;
+					}
 			throw new Exception("should not be able to get to this point");
 		}
 
@@ -80,12 +93,13 @@ namespace GeneTree
 			{
 				yield return _trueNode;
 				yield return _falseNode;
+				yield return _missingNode;
 			}
 		}
 
 		public override TreeNode CopyNonLinkingData()
 		{
-			DecisionTreeNode new_node = new DecisionTreeNode();
+			var new_node = new YesNoMissingTreeNode();
 			new_node.Test = this.Test.Copy();
 			new_node.matrix = new ConfusionMatrix(this.matrix._size);
 			return new_node;
@@ -104,14 +118,22 @@ namespace GeneTree
 		public override TreeNode ReturnFullyLinkedCopyOfSelf()
 		{
 			//know that it is a decision tree since it is self
-			DecisionTreeNode self_copy = (DecisionTreeNode)this.CopyNonLinkingData();
+			YesNoMissingTreeNode self_copy = (YesNoMissingTreeNode)this.CopyNonLinkingData();
 			TreeNode true_copy = _trueNode.ReturnFullyLinkedCopyOfSelf();
 			TreeNode false_copy = _falseNode.ReturnFullyLinkedCopyOfSelf();
+			TreeNode missing_copy = _missingNode.ReturnFullyLinkedCopyOfSelf();
 			self_copy._trueNode = true_copy;
 			self_copy._falseNode = false_copy;
+			self_copy._missingNode = missing_copy;
 			true_copy._parent = self_copy;
 			false_copy._parent = self_copy;
+			missing_copy._parent = self_copy;
 			return self_copy;
 		}
 	}
 }
+
+
+
+
+

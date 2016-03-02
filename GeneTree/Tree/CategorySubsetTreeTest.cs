@@ -17,10 +17,11 @@ namespace GeneTree
 		#region implemented abstract members of TreeTest
 		public override TreeTest Copy()
 		{
-			CategorySubsetTreeTest test = new CategorySubsetTreeTest();
-			test._values.AddRange(this._values);
-			test._param = this._param;
-			return test;
+			CategorySubsetTreeTest test_copy = new CategorySubsetTreeTest();
+			test_copy._values.AddRange(this._values);
+			test_copy._param = this._param;
+			test_copy._testCol = this._testCol;
+			return test_copy;
 		}
 
 		public override bool isTrueTest(DataPoint point)

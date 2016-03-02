@@ -8,7 +8,6 @@ namespace GeneTree
 {
 	public class DataPoint
 	{
-		public IEnumerable<string> _rawData;
 		public List<DataValue> _data;
 		public DataValue _classification;
 		
@@ -18,7 +17,6 @@ namespace GeneTree
 			
 			//need to create a data point and deal with the types
 			dp._data = new List<DataValue>();
-			dp._rawData = raw_data;
 			
 			for (int i = 0; i < raw_data.Length; i++)
 			{
@@ -31,8 +29,6 @@ namespace GeneTree
 				}
 				
 				var dv = new DataValue();
-				dv._rawValue = value;
-				
 				
 				switch (columns[i]._type)
 				{
