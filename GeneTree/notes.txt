@@ -1,10 +1,6 @@
 ﻿//this files contains some of the ongoing notes.  things in here should be cleared out and made into Issues or just implemented.
 
-need to take a first shot at the BNP data with a new configuration and test load
-
 consider letting the less than test pick a value instead of doing min/max test
-
-normalize doubledatacolumn results
 
 track score over time for different generations and plot the results (look for when/where they top out)
 
@@ -22,14 +18,26 @@ need to see which generated features show up in the tree... keep those and gener
 
 need a quick way to remove features from the data (ideally w/o removing original data)
 
-determine why the NO CLASS is not getting used as before (problem with percent classed)?
-
 only compute calcualtedcolumns on the test data... save the formula to use for other values as needed
 
 possible to group categories since the data is ordinal?  maybe not useful now, but good to remember
 
 recreate the delete node option (force class to NO CLASS)
 
-default to the BNP data
+create a general method to add a NO CLASS node to a tree at a give spot (or to replace a given spot) ReplaceWithBlank()
 
-go to 3 digits on doubles by default (outputs)
+reduce output on each generation (not checking the results... coming in too quick)
+
+output a tree ready for viz (or viz inside the program)
+
+add param for the number of initial populations to include
+
+output an initial status to make it clear that the program is running
+
+next commit message
+ - Normalize data from 0 to 1 by default
+ - Default to BNP data
+ - ignore structural location in xml?
+ - force missing categorical value to be -2 
+ - go to 3 digits on doubles by default (outputs)
+ - update default values for the class power and node count penalties

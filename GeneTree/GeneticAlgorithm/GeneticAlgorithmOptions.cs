@@ -4,7 +4,7 @@ namespace GeneTree
 {
 	public class GeneticAlgorithmOptions
 	{
-		public double eval_percentClass_min = 0.1;
+		public double eval_percentClass_min = 0.2;
 		public double Eval_percentClass_min
 		{
 			get
@@ -17,7 +17,7 @@ namespace GeneTree
 			}
 		}
 
-		public double eval_class_power = 0.00;
+		public double eval_class_power = 0.10;
 		public double Eval_class_power
 		{
 			get
@@ -30,7 +30,7 @@ namespace GeneTree
 			}
 		}
 
-		public double eval_node_count = -0.01;
+		public double eval_node_count = -0.10;
 		public double Eval_Node_Count
 		{
 			get
@@ -199,7 +199,7 @@ namespace GeneTree
 			}
 		}
 
-		public int seq_inner_population = 500;
+		public int seq_inner_population = 1000;
 		public int Seq_inner_population
 		{
 			get
@@ -212,7 +212,7 @@ namespace GeneTree
 			}
 		}
 
-		public int seq_inner_generations = 50;
+		public int seq_inner_generations = 22;
 		public int Seq_inner_generations
 		{
 			get
@@ -251,7 +251,7 @@ namespace GeneTree
 			}
 		}
 
-		public int seq_inner_run = 10;
+		public int seq_inner_run = 30;
 		public int Seq_inner_run
 		{
 			get

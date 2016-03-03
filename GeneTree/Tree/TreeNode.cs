@@ -28,6 +28,7 @@ namespace GeneTree
 		public Tree _tree;
 		public int _traverseCount;
 		
+		[XmlIgnore]
 		public int _structuralLocation;
 		
 		public abstract TreeNode CopyNonLinkingData();

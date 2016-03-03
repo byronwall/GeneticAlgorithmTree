@@ -57,6 +57,7 @@ namespace GeneTree
 						{
 							dv._isMissing = true;
 							columns[i]._hasMissingValues = true;
+							dv._value = -2;
 						}
 						
 						var dataColumn = columns[i] as CategoryDataColumn;

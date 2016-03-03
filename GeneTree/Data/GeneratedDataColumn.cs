@@ -32,7 +32,7 @@ namespace GeneTree
 
 		public override string ToString()
 		{
-			return string.Format("{0:0.00}*{2}({1})", _scaling, _baseColumn, _formula);
+			return string.Format("{0:0.000}*{2}({1})", _scaling, _baseColumn, _formula);
 		}
 
 		public void CreateValues(DataPointManager dp_mgr)

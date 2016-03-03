@@ -42,7 +42,7 @@ namespace GeneTree
 
 		public override string ToString()
 		{
-			return string.Format("{0} <= {1:0.00}", _testCol, valTest);
+			return string.Format("{0} <= {1:0.000}", _testCol, valTest);
 		}
 
 		public override bool ChangeTestValue(GeneticAlgorithmManager mgr)

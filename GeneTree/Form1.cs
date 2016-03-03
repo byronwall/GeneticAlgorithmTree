@@ -67,6 +67,8 @@ namespace GeneTree
 			InitializeComponent();			
 			InitBackgroundWorker();
 			
+			LoadBnpDataLocations();
+			
 			//set up the property grid
 			prop_gaOptions.SelectedObject = ga_mgr._gaOptions;
 						
@@ -118,11 +120,17 @@ namespace GeneTree
 		{
 			Debug.Print(ga_mgr.dataPointMgr.GetSummaryOfClasses());
 		}
-		void Button2Click(object sender, EventArgs e)
+
+		void LoadBnpDataLocations()
 		{
 			//TODO delete this later
 			txt_dataFile.Text = @"C:\projects\bnp-kaggle\train-noid.csv";
 			txt_configFile.Text = @"C:\projects\bnp-kaggle\train-noid_config.txt";
+		}
+
+		void Button2Click(object sender, EventArgs e)
+		{
+			LoadBnpDataLocations();
 		}
 	}
 }

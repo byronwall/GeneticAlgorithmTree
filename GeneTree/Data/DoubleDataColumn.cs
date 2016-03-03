@@ -10,6 +10,7 @@ namespace GeneTree
 	{
 		public double _min = double.MaxValue;
 		public double _max = double.MinValue;
+		public double _range = 0.0;
 		
 		
 		public override double GetTestValue(Random rando)
@@ -21,19 +22,33 @@ namespace GeneTree
 		{
 			this._type = DataValueTypes.NUMBER;
 		}
-		
-		public override void ProcessRanges()
+
+		void ComputeMinMaxRange()
 		{
 			_min = _values.Min(x => x._value);
 			_max = _values.Max(x => x._value);
+			_range = (_max - _min);
+		}
+		public override void ProcessRanges()
+		{
+			ComputeMinMaxRange();
 			
+			//do a normalization step
 			for (int i = 0; i < _values.Count; i++)
 			{
 				if (_values[i]._isMissing)
 				{
-					_values[i]._value = _min - 1;
+					//assumes min = 0
+					_values[i]._value = -1.0;
+				}
+				else
+				{
+					_values[i]._value = (_values[i]._value - _min) / _range;
 				}
 			}
+			
+			//second step here ensures that min/max are correct (should be 0 to 1 but this is a double check)
+			ComputeMinMaxRange();
 		}
 		public override string GetSummaryString()
 		{
