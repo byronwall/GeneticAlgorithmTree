@@ -251,7 +251,7 @@ namespace GeneTree
 			}
 		}
 
-		public int seq_inner_run = 30;
+		public int seq_inner_run = 100;
 		public int Seq_inner_run
 		{
 			get

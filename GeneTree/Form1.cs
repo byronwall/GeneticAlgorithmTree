@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+
 namespace GeneTree
 {
 	public partial class Form1 : Form
@@ -20,7 +21,15 @@ namespace GeneTree
 
 		void bw_DoWork(object sender, DoWorkEventArgs e)
 		{
-			ga_mgr.CreatePoolOfGoodTrees();
+			var action = e.Argument as Action;
+			if (action != null)
+			{
+				action();
+			}
+			else
+			{
+				throw new Exception("did you intend to have a method call in here somehwere?");
+			}
 		}
 
 		void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -30,7 +39,7 @@ namespace GeneTree
 			prop_gaOptions.Refresh();
 		}
 		
-		void bw_UpdateProgress(GeneticAlgorithmUpdateStatus data)
+		void UpdateProgressAndStatus(GeneticAlgorithmUpdateStatus data)
 		{
 			last_status = data;
 			if (bw != null && bw.WorkerReportsProgress)
@@ -47,6 +56,9 @@ namespace GeneTree
 				Debug.Write(e.Error.ToString());
 				throw e.Error;
 			}
+			
+			Debug.WriteLine("background worker is completed doing whatever");
+			prog_ongoing.Value = 100;
 		}
 		void InitBackgroundWorker()
 		{
@@ -59,7 +71,7 @@ namespace GeneTree
 
 		void ga_mgr_ProgressUpdated(object sender, EventArg<GeneticAlgorithmUpdateStatus> e)
 		{
-			bw_UpdateProgress(e.Data);
+			UpdateProgressAndStatus(e.Data);
 		}
 
 		public Form1()
@@ -77,15 +89,7 @@ namespace GeneTree
 		
 		private void btnPoolRando_Click(object sender, EventArgs e)
 		{
-			if (bw.IsBusy)
-			{
-				return;
-			}
-			
-			btnPoolRando.Enabled = false;
-			bw.RunWorkerAsync();
-			
-			btnPoolRando.Enabled = true;
+			StartBackgroundWorker(new Action(ga_mgr.CreatePoolOfGoodTrees));
 		}
 		
 		void Btn_configDefaultClick(object sender, EventArgs e)
@@ -101,10 +105,12 @@ namespace GeneTree
 		}
 		void Btn_loadWithConfigClick(object sender, EventArgs e)
 		{
-			//TODO find a better way to prevent double click
-			btn_loadWithConfig.Enabled = false;
-			
-			ga_mgr.LoadDataFile(txt_dataFile.Text, txt_configFile.Text);
+			var action = new Action(() =>
+				{
+					ga_mgr.LoadDataFile(txt_dataFile.Text, txt_configFile.Text);
+					//ga_mgr.dataPointMgr.OutputCodebooks();
+				});
+			StartBackgroundWorker(action);
 		}
 		void Button1Click(object sender, EventArgs e)
 		{
@@ -130,7 +136,31 @@ namespace GeneTree
 
 		void Button2Click(object sender, EventArgs e)
 		{
-			LoadBnpDataLocations();
+			txt_dataFile.Text = @"C:\projects\bnp-kaggle\test.csv";
+			txt_configFile.Text = @"C:\projects\bnp-kaggle\test_config.txt";
+		}
+		void Btn_predictAllClick(object sender, EventArgs e)
+		{
+			//TODO make this path a dialog selector
+			//get the folder to load trees from
+			string path = @"C:\projects\gene-tree\GeneTree\bin\Debug\tree outputs\635927920264504331";
+			
+			StartBackgroundWorker(new Action(() => ga_mgr.DoAllPredictions(path)));
+		}
+		void Btn_predictClick(object sender, EventArgs e)
+		{
+			StartBackgroundWorker(new Action(ga_mgr.DoSomePrediction));
+		}
+		
+		void StartBackgroundWorker(Action action)
+		{
+			if (bw.IsBusy)
+			{
+				Debug.WriteLine("backgroundworker is busy... double click?");
+				return;
+			}
+			
+			bw.RunWorkerAsync(action);
 		}
 	}
 }

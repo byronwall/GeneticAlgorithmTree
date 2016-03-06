@@ -70,7 +70,11 @@ namespace GeneTree
 		public virtual void ProcessResultFromClassification(double actual, double predicted)
 		{
 			//sends things up the chain
-			this.matrix.AddItem(actual, predicted);
+			//TODO clean up this null check.  was added for the case where running through tree outside of normal method (for predictions)
+			if (this.matrix != null)
+			{
+				this.matrix.AddItem(actual, predicted);
+			}
 			
 			if (this._parent != null)
 			{

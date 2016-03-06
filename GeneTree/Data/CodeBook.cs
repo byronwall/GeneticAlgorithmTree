@@ -9,7 +9,8 @@ namespace GeneTree
 	{
 		Dictionary<string, double> _mappings = new Dictionary<string, double>();
 
-		public IEnumerable<string> GetCategoryNames(){
+		public IEnumerable<string> GetCategoryNames()
+		{
 			return _mappings.Keys;
 		}
 		
@@ -18,7 +19,8 @@ namespace GeneTree
 			return _mappings[value];
 		}
 		
-		public IEnumerable<double> GetCategories(){
+		public IEnumerable<double> GetCategories()
+		{
 			return this._mappings.Values;
 		}
 
@@ -37,6 +39,22 @@ namespace GeneTree
 			double value = _mappings.Count;
 			_mappings.Add(rawValue, _mappings.Count);
 			return value;
+		}
+		
+		public override string ToString()
+		{
+			return string.Join(",", _mappings.OrderBy(c => c.Value).Select(c => c.Key));
+		}
+		public void PopulateFromString(string data)
+		{
+			//this allows for things to be input before they are needed
+			//TODO can this approach be used to short circuit data loading?
+			var parts = data.Split(',');
+			
+			foreach (var part in parts)
+			{
+				AddToCodebook(part);
+			}
 		}
 	}
 }

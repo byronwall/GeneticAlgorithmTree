@@ -82,6 +82,7 @@
     <Compile Include="GeneticAlgorithm\GeneticAlgorithmRunResults.cs" />
     <Compile Include="GeneticAlgorithm\GeneticAlgorithmUpdateStatus.cs" />
     <Compile Include="GeneticAlgorithm\GeneticOperations.cs" />
+    <Compile Include="GeneticAlgorithm\PredictionManager.cs" />
     <Compile Include="GeneticAlgorithm\WeightedSelector.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Form1.cs">

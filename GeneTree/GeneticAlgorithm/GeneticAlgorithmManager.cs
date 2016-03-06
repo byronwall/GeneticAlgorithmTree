@@ -51,35 +51,25 @@ namespace GeneTree
 			//TODO create this dir once it's needed
 			var new_dir = Directory.CreateDirectory("tree outputs\\" + DateTime.Now.Ticks);
 			
-			//HACK: data update only at start to ensure that trees are improving on same data
 			dataPointMgr.UpdateSubsetOfDatapoints(_gaOptions.prob_to_keep_data, rando);
 			
-			for (int outer_run = 0; outer_run < _gaOptions.seq_outer_run; outer_run++)
+			//HACK: data update only at start to ensure that trees are improving on same data
+			_gaOptions.populationSize = _gaOptions.seq_inner_population;
+			
+			_gaOptions.generations = _gaOptions.seq_inner_generations;
+			for (int run = 0; run < _gaOptions.seq_inner_run; run++)
 			{
-				List<Tree> keepers = new List<Tree>();
-				
-				_gaOptions.populationSize = _gaOptions.seq_inner_population;
-				_gaOptions.generations = _gaOptions.seq_inner_generations;
-				
-				for (int run = 0; run < _gaOptions.seq_inner_run; run++)
+				//TODO use better logic to determine when to switch to new data
+				if (run % 5 == 0)
 				{
-					Logger.WriteLine("starting run at generation {0} in outer run {1}", run, outer_run);
-					
-					var trees = ProcessTheNextGeneration();
-					trees[0].WriteToXmlFile(Path.Combine(new_dir.FullName, string.Format("{0} - {1}.xml", outer_run, run)));
-					keepers.AddRange(trees);
+					dataPointMgr.UpdateSubsetOfDatapoints(_gaOptions.prob_to_keep_data, rando);
 				}
-				
-				_gaOptions.populationSize *= _gaOptions.seq_inner_run;
-				_gaOptions.generations = _gaOptions.seq_middle_generations;
-				
-				theBest.AddRange(ProcessTheNextGeneration(keepers));
+				Logger.WriteLine("starting run at run {0}", run);
+					
+				var trees = ProcessTheNextGeneration();
+				trees[0].WriteToXmlFile(Path.Combine(new_dir.FullName, string.Format("{0}.xml", run)));
 			}
-			
-			_gaOptions.populationSize *= _gaOptions.seq_outer_run;
-			_gaOptions.generations = _gaOptions.seq_outer_generations;
-			
-			ProcessTheNextGeneration(theBest);
+				
 		}
 		
 		private List<Tree> ProcessPoolOfTrees(IEnumerable<Tree> trees, int generation)
@@ -106,6 +96,8 @@ namespace GeneTree
 					results = new GeneticAlgorithmRunResults(this);
 					processAgain = false;
 					tree.ProcessDataThroughTree(dataPointMgr, results);
+					
+					break;
 					
 					foreach (var node in tree.GetNodesOfType<ClassificationTreeNode>())
 					{
@@ -144,16 +136,17 @@ namespace GeneTree
 		
 		public List<Tree> ProcessTheNextGeneration()
 		{
-			var starter = CreateRandomPoolOfTrees(_gaOptions.populationSize*5);
+			var starter = CreateRandomPoolOfTrees(_gaOptions.populationSize * 5);
 			return ProcessTheNextGeneration(starter);
 		}
 
 		public List<Tree> ProcessTheNextGeneration(List<Tree> treesInPopulation)
 		{
 			//add a bunch of random columns for testing (1:1) for now
-			int count_generated_features = dataPointMgr._columns.Count*0;
+			int count_generated_features = dataPointMgr._columns.Count * 0;
 			
-			for (int i = 0; i < count_generated_features; i++) {
+			for (int i = 0; i < count_generated_features; i++)
+			{
 				dataPointMgr._columns.Add(GeneratedDataColumn.CreateNewRandom(this));
 			}
 			
@@ -184,7 +177,7 @@ namespace GeneTree
 				Logger.WriteLine("");
 				foreach (var tree in treesInPopulation.Take(10))
 				{
-					Logger.WriteLine(tree._prevResults.GetMetricResult);
+					Logger.WriteLine("{0:0.000}", tree._prevResults.GetMetricResult);
 				}
 				
 				foreach (var tree in treesInPopulation.Take(1))
@@ -194,7 +187,8 @@ namespace GeneTree
 					Logger.WriteLine(tree._prevResults);
 					
 					//output the nodes matrices
-					
+					//TODO remove this break to get output again
+					break;
 					foreach (var node in tree._nodes)
 					{
 						if (node._traverseCount > 0)
@@ -212,6 +206,8 @@ namespace GeneTree
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SplitNodeWithMostPopularClasses, _gaOptions.prob_node_split));
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.ChangeValueForNode, _gaOptions.prob_ops_change));
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.CreateRandomTree, _gaOptions.Prob_ops_new_tree));
+				
+				//TODO reinstate the delete node option (force to NO CLASS)
 				//operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.DeleteNodeFromTree, _gaOptions.prob_ops_delete));
 					
 				var operation_picker = new WeightedSelector<GeneticOperations.GeneticOperation>(operations);
@@ -228,7 +224,7 @@ namespace GeneTree
 				
 				OnProgressUpdated(100 * generationNumber / _gaOptions.generations);
 			}
-			//TODO add a step at the end to verify the results with a hold out data set
+
 			OnProgressUpdated(100);
 			
 			return treesInPopulation;
@@ -270,7 +266,25 @@ namespace GeneTree
 			}
 			return tree;
 		}
+		
+		public void DoSomePrediction()
+		{
+			//TODO this method is poorly named and a hack
+			PredictionManager predMgr = new PredictionManager(this);
+			
+			predMgr.LoadTreeAndGenerateResults();
+			
+			OnProgressUpdated(100);
+		}
+		
+		public void DoAllPredictions(string path)
+		{
+			//TODO this method is poorly named and a hack
+			PredictionManager predMgr = new PredictionManager(this);
+			
+			predMgr.GeneratePredictionsForDataWithAllTrees(path);
+			
+			OnProgressUpdated(100);
+		}
 	}
-	
-	
 }

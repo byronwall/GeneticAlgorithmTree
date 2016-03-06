@@ -15,7 +15,9 @@ namespace GeneTree
 		public enum DataValueTypes
 		{
 			NUMBER,
-			CATEGORY
+			CATEGORY,
+			ID,
+			CLASS
 		}
 		
 		public DataValueTypes _type;

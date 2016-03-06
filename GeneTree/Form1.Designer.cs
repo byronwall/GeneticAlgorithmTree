@@ -49,6 +49,8 @@
         	this.prop_gaOptions = new System.Windows.Forms.PropertyGrid();
         	this.btn_dataSummary = new System.Windows.Forms.Button();
         	this.button2 = new System.Windows.Forms.Button();
+        	this.btn_predict = new System.Windows.Forms.Button();
+        	this.btn_predictAll = new System.Windows.Forms.Button();
         	this.statusStrip1.SuspendLayout();
         	this.menuStrip1.SuspendLayout();
         	this.SuspendLayout();
@@ -235,11 +237,33 @@
         	this.button2.UseVisualStyleBackColor = true;
         	this.button2.Click += new System.EventHandler(this.Button2Click);
         	// 
+        	// btn_predict
+        	// 
+        	this.btn_predict.Location = new System.Drawing.Point(13, 381);
+        	this.btn_predict.Name = "btn_predict";
+        	this.btn_predict.Size = new System.Drawing.Size(116, 23);
+        	this.btn_predict.TabIndex = 14;
+        	this.btn_predict.Text = "predict tree";
+        	this.btn_predict.UseVisualStyleBackColor = true;
+        	this.btn_predict.Click += new System.EventHandler(this.Btn_predictClick);
+        	// 
+        	// btn_predictAll
+        	// 
+        	this.btn_predictAll.Location = new System.Drawing.Point(13, 410);
+        	this.btn_predictAll.Name = "btn_predictAll";
+        	this.btn_predictAll.Size = new System.Drawing.Size(116, 23);
+        	this.btn_predictAll.TabIndex = 14;
+        	this.btn_predictAll.Text = "predict all trees";
+        	this.btn_predictAll.UseVisualStyleBackColor = true;
+        	this.btn_predictAll.Click += new System.EventHandler(this.Btn_predictAllClick);
+        	// 
         	// Form1
         	// 
         	this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
         	this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         	this.ClientSize = new System.Drawing.Size(1081, 480);
+        	this.Controls.Add(this.btn_predictAll);
+        	this.Controls.Add(this.btn_predict);
         	this.Controls.Add(this.btn_dataSummary);
         	this.Controls.Add(this.prop_gaOptions);
         	this.Controls.Add(this.txt_status);
@@ -289,6 +313,8 @@
         private System.Windows.Forms.PropertyGrid prop_gaOptions;
         private System.Windows.Forms.Button btn_dataSummary;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button btn_predict;
+        private System.Windows.Forms.Button btn_predictAll;
     }
 }
 

@@ -33,10 +33,10 @@ namespace GeneTree
 			
 			//tries to pick good nodes to swap around			
 			var tree1_node_picker = new WeightedSelector<TreeNode>(
-				                        tree1._nodes.Select(c => Tuple.Create(c, c._traverseCount * (c.matrix.GetObservedAccuracy() + 0.00001))));
+				                        tree1._nodes.Select(c => Tuple.Create(c, (c._traverseCount + 1) * (c.matrix.GetObservedAccuracy() + 0.00001))));
 			
 			var tree2_node_picker = new WeightedSelector<TreeNode>(
-				                        tree2._nodes.Select(c => Tuple.Create(c, c._traverseCount * (c.matrix.GetObservedAccuracy() + 0.00001))));
+				                        tree2._nodes.Select(c => Tuple.Create(c, (c._traverseCount + 1) * (c.matrix.GetObservedAccuracy() + 0.00001))));
 			
 			TreeNode node1 = tree1_copy.GetNodeAtStructualLocation(tree1_node_picker.PickRandom(ga_mgr.rando)._structuralLocation);
 			TreeNode node2 = tree2_copy.GetNodeAtStructualLocation(tree2_node_picker.PickRandom(ga_mgr.rando)._structuralLocation);

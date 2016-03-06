@@ -25,8 +25,8 @@ namespace GeneTree
 
 		void ComputeMinMaxRange()
 		{
-			_min = _values.Min(x => x._value);
-			_max = _values.Max(x => x._value);
+			_min = _values.Where(c=>!c._isMissing).Min(x => x._value);
+			_max = _values.Where(c=>!c._isMissing).Max(x => x._value);
 			_range = (_max - _min);
 		}
 		public override void ProcessRanges()

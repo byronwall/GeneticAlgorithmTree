@@ -25,9 +25,16 @@ namespace GeneTree
 			{
 				//these are known to be ints since they are classes from a Codebook
 				results.count_classedData++;
-				results._matrix.AddItem((int)point._classification._value, (int)this.Classification);
 				
-				this.ProcessResultFromClassification(point._classification._value, this.Classification);
+				//TODO fix this to be less hacky.  currently assumes that if no class then assume 0
+				int actualClass = 0;
+				if (point._classification != null)
+				{
+					actualClass = (int)point._classification._value;
+				}
+				
+				results._matrix.AddItem(actualClass, (int)this.Classification);				
+				this.ProcessResultFromClassification(actualClass, this.Classification);
 				
 				return true;
 			}

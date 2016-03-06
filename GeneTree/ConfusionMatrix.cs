@@ -92,7 +92,8 @@ namespace GeneTree
 			{
 				for (int j = 0; j < _size; j++)
 				{
-					if(_values[i,j] > 0){
+					if (_values[i, j] > 0)
+					{
 						values.Add(Tuple.Create(i, (double)_values[i, j]));
 					}
 				}
@@ -142,6 +143,39 @@ namespace GeneTree
 			double exp_acc = GetExpectedAccuracy();
 			
 			return (obs_acc - exp_acc) / (1 - exp_acc);
+		}
+		public double[] GetClassProbabilities()
+		{
+			//this assumes that the matrix is in a form to make predictions
+			
+			double[] totals = new double[_size];
+			
+			
+			//sum the column totals
+			for (int i = 0; i < _size; i++)
+			{
+				for (int j = 0; j < _size; j++)
+				{
+					totals[j] += _values[i, j];
+				}
+			}
+			
+			//normalize by count
+			
+			for (int i = 0; i < _size; i++)
+			{
+				if (_count > 0)
+				{
+					
+					totals[i] /= _count;
+				}
+				else
+				{
+					totals[i] = 1.0 / _size;
+				}
+			}
+			
+			return totals;
 		}
 	}
 }

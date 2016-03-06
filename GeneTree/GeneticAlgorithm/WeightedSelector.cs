@@ -35,11 +35,16 @@ namespace GeneTree
 					return item.Item1;
 				}
 			}
-			throw new Exception("should not get here => no value able to be picked");
+			
+			return _items[0].Item1;
 		}
 
 		public WeightedSelector(IEnumerable<Tuple<T, double>> items)
 		{
+			_items.AddRange(items);
+			return;
+			
+			//TODO remove this extra stuff
 			foreach (var item in items)
 			{
 				if (item.Item2 > 0)

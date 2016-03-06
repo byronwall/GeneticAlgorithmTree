@@ -164,13 +164,11 @@ namespace GeneTree
 		public void ProcessDataThroughTree(DataPointManager dataPointMgr, GeneticAlgorithmRunResults results)
 		{
 			//reset traverse counts
-			foreach (var node in this._nodes)
-			{
-				node._traverseCount = 0;
-				node.matrix = new ConfusionMatrix(dataPointMgr.classes.Length);
-			}
-			
 			//double check on traverse count
+
+			//TODO clean this up to determine which one is failing			
+			_nodes.Clear();
+			
 			Stack<TreeNode> nodes_to_process = new Stack<TreeNode>();
 			nodes_to_process.Push(_root);
 			
@@ -178,7 +176,9 @@ namespace GeneTree
 			{
 				TreeNode node = nodes_to_process.Pop();
 				//TODO determine why this line will fail at times... seems to be related to root nodes
-				Debug.Assert(node._traverseCount == 0);
+				_nodes.Add(node);
+				node._traverseCount = 0;
+				node.matrix = new ConfusionMatrix(dataPointMgr.classes.Length);
 				
 				foreach (var subNode in node._subNodes)
 				{
@@ -188,6 +188,7 @@ namespace GeneTree
 			
 			
 			ConfusionMatrix matrix = new ConfusionMatrix(dataPointMgr.classes.Length);
+			//TODO this shoudl not be working directly on pointsToTest... need to send that as a parameter
 			foreach (var dataPoint in dataPointMgr._pointsToTest)
 			{
 				results.count_allData++;

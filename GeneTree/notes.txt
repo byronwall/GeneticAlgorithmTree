@@ -1,7 +1,5 @@
 ﻿//this files contains some of the ongoing notes.  things in here should be cleared out and made into Issues or just implemented.
 
-consider letting the less than test pick a value instead of doing min/max test
-
 track score over time for different generations and plot the results (look for when/where they top out)
 
 new trees should be allowed to make genetic changes without having to survive first... get some more randomness into things
@@ -34,10 +32,49 @@ add param for the number of initial populations to include
 
 output an initial status to make it clear that the program is running
 
+prevent case where all nodes go to NO CLASS but there is a still a "decision" to be made
+
+all of the bad nodes that do nothign are costing extra laps of evaluation (consider using confusion table instead of the traverse count)
+ - maybe create a IsNodeDeadTest, to check for dead end paths
+
+category subset should add/remove 1 at a time to look for improvements
+
+create a tree node that splits based on all the categories possible (tons of nodes)
+ - could then merge nodes or point them to the same spot depending on what they need
+ 
+backgroundworker should output what it is working on and has finished in the events
+
+would be nice if data loader could report progress as well
+
+remove traversecount from the xml file
+
+allow prediction to weight the results by the score of the tree (need to save the score somewhere)
+
+use the confusion matrix to compute add'l statistics that would be useful to optimize on
+
+add some measure of entropy to the confusion matrix.  might allow for better node selection
+
+datacolumngeerator should live outside of the actual data, will make it easier to save and reduce the number of items calcualted
+
+take nodes with a large NO CLASS and see if they can be split or reclassed better.  especially bad when all are NO CLASS but still might be good
+
+create an operation to "force to best (or most or something)", had to disable this for imbalances created with two class
+
+consider removing the node count penalty early on.  allow things to grow and then prune back. (maybe ratio the max against the generation number)
+
+saw a test for "112 == -1" figure out where that is coming from
+
+maybe put the kappa into the XML file?  or create a separate database that categorizes the trees that exist
+ - if the DB has the node info, this can be processed to determine popular nodes
+
 next commit message
- - Normalize data from 0 to 1 by default
- - Default to BNP data
- - ignore structural location in xml?
- - force missing categorical value to be -2 
- - go to 3 digits on doubles by default (outputs)
- - update default values for the class power and node count penalties
+ - skip missing values when computing min/max
+ - tried to use data values for the value test, but missing values are overwhelming things, reverted back (this probably lead to all the null results)
+ - don't use while loops in code that is called a large number of times
+ - modified backgroundworker to take a generic Action instead of specifics inside DoWork
+ - generate a method to load and test previously saved trees
+ - run the full test set through all of the trees that were made
+ - do a prediction of the test set and submit
+ - data loader now supports an ID and CLASS column, this keep these fields out of the data columns
+ - data loader can deal with headers and config file that are in different order
+ - added ability to allow for the codebook order to be stored for later (needed when splitting train/test)
