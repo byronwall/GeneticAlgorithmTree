@@ -82,6 +82,20 @@ namespace GeneTree
 			}
 		}
 		
+		public void ResetTrackingDetails(GeneticAlgorithmManager ga_mgr, bool shouldApplyRecursively)
+		{
+			this.matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
+			this._traverseCount = 0;
+			
+			if (shouldApplyRecursively)
+			{
+				foreach (var node in _subNodes)
+				{
+					node.ResetTrackingDetails(ga_mgr, shouldApplyRecursively);
+				}
+			}
+		}
+		
 		public static TreeNode TreeNodeFactory(GeneticAlgorithmManager ga_mgr, bool ShouldForceTerminal, Tree tree)
 		{	
 			TreeNode node_output;
@@ -117,7 +131,7 @@ namespace GeneTree
 			//TODO handle this better where the node to swap is the root, right now just exists with no change
 			if (node1._parent == null || node2._parent == null)
 			{
-				return false ;
+				return false;
 			}
 			
 			var tree1 = node1._tree;

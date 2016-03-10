@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-
 namespace GeneTree
 {
 	public partial class Form1 : Form
@@ -143,7 +142,8 @@ namespace GeneTree
 		{
 			//TODO make this path a dialog selector
 			//get the folder to load trees from
-			string path = @"C:\projects\gene-tree\GeneTree\bin\Debug\tree outputs\635927920264504331";
+			
+			string path = @"C:\projects\gene-tree\GeneTree\bin\Debug\tree outputs\635931079385345877";
 			
 			StartBackgroundWorker(new Action(() => ga_mgr.DoAllPredictions(path)));
 		}

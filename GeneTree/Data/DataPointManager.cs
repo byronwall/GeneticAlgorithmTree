@@ -155,8 +155,6 @@ namespace GeneTree
 			var reader = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 			
 			var header_line = reader.ReadLine();
-			
-			//TODO some step to ensure headers are in same order as data, create mapping here possibly
 			string[] headers = header_line.Split(',');
 			
 			var header_mapping = new 	Dictionary<int, string>();

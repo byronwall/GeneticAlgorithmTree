@@ -60,7 +60,7 @@ namespace GeneTree
 				SetStructuralLocationsForNodes();
 			}
 			
-			return _nodes.Single(c => c._structuralLocation == location);
+			return _nodes.SingleOrDefault(c => c._structuralLocation == location);
 		}
 		
 		public void SetStructuralLocationsForNodes()

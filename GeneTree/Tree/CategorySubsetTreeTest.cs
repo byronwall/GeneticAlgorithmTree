@@ -37,6 +37,7 @@ namespace GeneTree
 
 		public override bool ChangeTestValue(GeneticAlgorithmManager mgr)
 		{
+			//TODO this should only add/remove a single (or up to X) categories
 			this._values.Clear();
 			var col = mgr.dataPointMgr._columns[this._param] as CategoryDataColumn;
 			int category_count = col._codebook.GetCategories().Count();

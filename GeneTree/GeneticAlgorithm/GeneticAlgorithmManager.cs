@@ -90,29 +90,8 @@ namespace GeneTree
 					continue;
 				}
 				
-				bool processAgain = true;
-				while (processAgain)
-				{
-					results = new GeneticAlgorithmRunResults(this);
-					processAgain = false;
-					tree.ProcessDataThroughTree(dataPointMgr, results);
-					
-					break;
-					
-					foreach (var node in tree.GetNodesOfType<ClassificationTreeNode>())
-					{
-						//TODO subclass the empty node to avoid these sorts of issues
-						if (node.Classification != -1)
-						{
-							var best_class = node.matrix.GetRowWithMaxCount();
-							if (node.Classification != best_class)
-							{
-								node.Classification = best_class;
-								processAgain = true;
-							}
-						}
-					}
-				}
+				results = new GeneticAlgorithmRunResults(this);
+				tree.ProcessDataThroughTree(dataPointMgr, results);
 				
 				//moving this out of selectivity since node count affects score
 				tree.RemoveZeroCountNodes();
@@ -136,7 +115,8 @@ namespace GeneTree
 		
 		public List<Tree> ProcessTheNextGeneration()
 		{
-			var starter = CreateRandomPoolOfTrees(_gaOptions.populationSize * 5);
+			//TODO make this a parameter
+			var starter = CreateRandomPoolOfTrees(_gaOptions.populationSize * 1);
 			return ProcessTheNextGeneration(starter);
 		}
 
@@ -177,26 +157,14 @@ namespace GeneTree
 				Logger.WriteLine("");
 				foreach (var tree in treesInPopulation.Take(10))
 				{
-					Logger.WriteLine("{0:0.000}", tree._prevResults.GetMetricResult);
+					Logger.WriteLine("{0:0.000} ({1})", tree._prevResults.GetMetricResult, tree._source);
 				}
 				
 				foreach (var tree in treesInPopulation.Take(1))
 				{
 					Logger.WriteLine("");
 					Logger.WriteLine(tree);
-					Logger.WriteLine(tree._prevResults);
-					
-					//output the nodes matrices
-					//TODO remove this break to get output again
-					break;
-					foreach (var node in tree._nodes)
-					{
-						if (node._traverseCount > 0)
-						{
-							Logger.WriteLine(node);
-							Logger.WriteLine(node.matrix);
-						}
-					}
+					Logger.WriteLine(tree._prevResults);					
 				}
 				
 				//this allows probs to change after each generation if desired
@@ -206,6 +174,8 @@ namespace GeneTree
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SplitNodeWithMostPopularClasses, _gaOptions.prob_node_split));
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.ChangeValueForNode, _gaOptions.prob_ops_change));
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.CreateRandomTree, _gaOptions.Prob_ops_new_tree));
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.OptimizeSplitForNode, 10.0));
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.OptimizeClassesForTree, 10.0));
 				
 				//TODO reinstate the delete node option (force to NO CLASS)
 				//operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.DeleteNodeFromTree, _gaOptions.prob_ops_delete));

@@ -50,5 +50,24 @@ namespace GeneTreeTests
 			
 			var groups = string.Join("|", outputs.GroupBy(c => c).Select((c, d) => c.Key + " " + c.Count()));
 		}
+		
+		[Test]
+		public void GiniTest()
+		{
+			ConfusionMatrix test = new ConfusionMatrix(2);
+			test.AddItem(0, 0);
+			test.AddItem(0, 0);
+			test.AddItem(0, 0);
+			test.AddItem(0, 0);
+			
+			test.AddItem(1, 0);
+			test.AddItem(1, 0);
+			test.AddItem(1, 1);
+			test.AddItem(1, 0);
+			test.AddItem(1, 0);
+			
+			
+			Assert.AreEqual(test.GiniImpurity, 40.0 / 81.0);
+		}
 	}
 }

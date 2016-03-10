@@ -30,7 +30,7 @@ namespace GeneTree
 			}
 		}
 
-		public double eval_node_count = -0.10;
+		public double eval_node_count = 0.0;
 		public double Eval_Node_Count
 		{
 			get
@@ -56,7 +56,7 @@ namespace GeneTree
 			}
 		}
 		
-		public double prob_population_to_keep = 0.03;
+		public double prob_population_to_keep = 0.3;
 		public double Prob_population_to_keep
 		{
 			get
@@ -134,7 +134,7 @@ namespace GeneTree
 			}
 		}
 		
-		public double prob_node_split = 40;
+		public double prob_node_split = 20;
 		public double Prob_node_split
 		{
 			get
@@ -199,7 +199,7 @@ namespace GeneTree
 			}
 		}
 
-		public int seq_inner_population = 1000;
+		public int seq_inner_population = 250;
 		public int Seq_inner_population
 		{
 			get
@@ -212,7 +212,7 @@ namespace GeneTree
 			}
 		}
 
-		public int seq_inner_generations = 22;
+		public int seq_inner_generations = 30;
 		public int Seq_inner_generations
 		{
 			get

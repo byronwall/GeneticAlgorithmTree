@@ -1,80 +1,29 @@
 ﻿//this files contains some of the ongoing notes.  things in here should be cleared out and made into Issues or just implemented.
 
-track score over time for different generations and plot the results (look for when/where they top out)
-
-new trees should be allowed to make genetic changes without having to survive first... get some more randomness into things
-
-might be good to look for low performing nodes and make changes to them (could just NO CLASS to get rid of bad ones)
-
-do some analysis to determine which data columns are showing up most frequently for analysis
- - continue this to see which columns do best for predicting which class?
-
-need to check for instances where the same test shows up below a node in the tree
- - this also occurs when both terminal nodes point to the same thing
-
-need to see which generated features show up in the tree... keep those and generate more (GA for features almost)
-
-need a quick way to remove features from the data (ideally w/o removing original data)
-
-only compute calcualtedcolumns on the test data... save the formula to use for other values as needed
-
-possible to group categories since the data is ordinal?  maybe not useful now, but good to remember
-
-recreate the delete node option (force class to NO CLASS)
-
-create a general method to add a NO CLASS node to a tree at a give spot (or to replace a given spot) ReplaceWithBlank()
-
-reduce output on each generation (not checking the results... coming in too quick)
-
-output a tree ready for viz (or viz inside the program)
-
-add param for the number of initial populations to include
-
 output an initial status to make it clear that the program is running
-
-prevent case where all nodes go to NO CLASS but there is a still a "decision" to be made
-
-all of the bad nodes that do nothign are costing extra laps of evaluation (consider using confusion table instead of the traverse count)
- - maybe create a IsNodeDeadTest, to check for dead end paths
-
-category subset should add/remove 1 at a time to look for improvements
-
-create a tree node that splits based on all the categories possible (tons of nodes)
- - could then merge nodes or point them to the same spot depending on what they need
- 
-backgroundworker should output what it is working on and has finished in the events
-
-would be nice if data loader could report progress as well
-
-remove traversecount from the xml file
-
-allow prediction to weight the results by the score of the tree (need to save the score somewhere)
-
-use the confusion matrix to compute add'l statistics that would be useful to optimize on
-
-add some measure of entropy to the confusion matrix.  might allow for better node selection
-
-datacolumngeerator should live outside of the actual data, will make it easier to save and reduce the number of items calcualted
 
 take nodes with a large NO CLASS and see if they can be split or reclassed better.  especially bad when all are NO CLASS but still might be good
 
-create an operation to "force to best (or most or something)", had to disable this for imbalances created with two class
+really need to find a way to go after the small side of the classifier: group 0 has an awful success rate
 
-consider removing the node count penalty early on.  allow things to grow and then prune back. (maybe ratio the max against the generation number)
+node optimizer might work best with the node splitter
+ - work great together since it needs to generate a test and new decision nodes
 
-saw a test for "112 == -1" figure out where that is coming from
+is it possible to build a second layer of trees for anything that is classed as 0 on the first round?  try to break up the split better
 
-maybe put the kappa into the XML file?  or create a separate database that categorizes the trees that exist
- - if the DB has the node info, this can be processed to determine popular nodes
+add the missing count to the output summary
+
+use a weighted selector to choose which trees to pick nodes from
+
+update the tree to return probabilities instead of a single class (or update the tree to return scores which can be used for a loss function)
+
+compute a proper loss function for the tree search part
 
 next commit message
- - skip missing values when computing min/max
- - tried to use data values for the value test, but missing values are overwhelming things, reverted back (this probably lead to all the null results)
- - don't use while loops in code that is called a large number of times
- - modified backgroundworker to take a generic Action instead of specifics inside DoWork
- - generate a method to load and test previously saved trees
- - run the full test set through all of the trees that were made
- - do a prediction of the test set and submit
- - data loader now supports an ID and CLASS column, this keep these fields out of the data columns
- - data loader can deal with headers and config file that are in different order
- - added ability to allow for the codebook order to be stored for later (needed when splitting train/test)
+ - added some add'l calculations to the ConfusionMatrix class, they are not helping much
+ - modified the score metric to add a small piece to values that could be 0
+ - added a GeneticOperation to optimize the split on a node using the Gini impurity as the test
+ - output source during generations
+ - added a new operation to set the node class to the best class (by row max) in the data.  it overwrites NO CLASS nodes also
+ - added a collection for _testValues to prevent the missing test value showing up for categorical tests
+ 

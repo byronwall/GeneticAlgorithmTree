@@ -75,6 +75,8 @@ namespace GeneTree
 				sb.Append("\r\n");
 			}
 			
+			sb.AppendLine(string.Format("DOR = {0}", DiagnosticOddsRatio));
+			sb.AppendLine(string.Format("F1Score = {0}", F1Score));
 			sb.AppendLine(string.Format("max row: {0}", GetRowWithMaxCount()));
 			sb.AppendLine(string.Format("obs: {0} \t exp: {1}", GetObservedAccuracy(), GetExpectedAccuracy()));
 			sb.AppendLine(string.Format("columns with data = {0}", _columnsWithData));
@@ -176,6 +178,85 @@ namespace GeneTree
 			}
 			
 			return totals;
+		}
+		public double Sensitivity
+		{
+			get
+			{
+				return GetObservedAccuracy();
+			}
+		}
+		public double Specificity
+		{
+			get
+			{
+				//TODO need some check to fail this on a non-binary option
+				return 1.0 * _values[1, 1] / _count; 
+			}
+		}
+		public double PositivePredictiveValue
+		{
+			get
+			{
+				return 1.0 * (_values[0, 0] + 0.5) / (_values[0, 0] + _values[1, 0] + 0.5);
+			}
+		}
+		public double NegativePredictiveValue
+		{
+			get
+			{
+				return 1.0 * _values[1, 1] / (_values[1, 0] + _values[1, 1]);
+			}
+		}
+		public double DiagnosticOddsRatio
+		{
+			get
+			{
+				return (_values[0, 0] + 0.5) / (_values[1, 0] + 0.5) * (_values[1, 1] + 0.5) / (_values[0, 1] + 0.5);
+				//0+0.5 / 2705+0.5 * 8733+0.5 / 0.5
+			}
+		}
+		public double F1Score
+		{
+			get
+			{
+				return (2.0 * _values[0, 0] + 0.5) / (2.0 * _values[0, 0] + _values[0, 1] + _values[1, 0] + 0.5);
+			}
+		}
+		public double GiniImpurity
+		{
+			get
+			{
+				if (_count == 0)
+				{
+					return 0.0;
+				}
+				
+				//TODO generate a method for getting row and column sums
+				
+				//sum the rows for a probability
+				double _runningGini = 1.0;
+				for (int i = 0; i < _size; i++)
+				{
+					
+					double rowSum = 0.0;
+					for (int j = 0; j < _size; j++)
+					{
+						rowSum += _values[i, j];
+					}
+					
+					_runningGini -= Math.Pow(rowSum / _count, 2);
+				}
+				
+				return _runningGini;
+			}
+		}
+		public double GiniImpuritySqrt
+		{
+			get
+			{
+				return Math.Sqrt(GiniImpurity);
+			}
 		}
 	}
 }

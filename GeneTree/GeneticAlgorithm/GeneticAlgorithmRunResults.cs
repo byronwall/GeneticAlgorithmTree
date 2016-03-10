@@ -41,12 +41,17 @@ namespace GeneTree
 			{
 				if (this.GetPercentClassified < ga_mgr._gaOptions.eval_percentClass_min)
 				{
-					return 0;
+					return 0.0;
 				}				
 				
-				return _matrix.GetKappa() *
-				Math.Pow(this.GetPercentClassified, ga_mgr._gaOptions.eval_class_power) *
-				Math.Pow(Math.Log(tree_nodeCount), ga_mgr._gaOptions.eval_node_count);
+				//return _matrix.GetKappa() *
+				double score = _matrix.GetKappa() *
+				               Math.Pow(this.GetPercentClassified + 0.0001, ga_mgr._gaOptions.eval_class_power) *
+				               Math.Pow(Math.Log(tree_nodeCount) + 0.0001, ga_mgr._gaOptions.eval_node_count);
+				
+				//TODO might need a check for NaN, not sure how that affects sorting
+				
+				return score;
 			}
 		}
 		
