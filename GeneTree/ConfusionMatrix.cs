@@ -12,7 +12,7 @@ namespace GeneTree
 	{
 		public int[,] _values;
 		public int _size;
-		public int _count;
+		public int _count = 0;
 		public int _columnsWithData;
 
 		public ConfusionMatrix(int size)
@@ -256,6 +256,19 @@ namespace GeneTree
 			get
 			{
 				return Math.Sqrt(GiniImpurity);
+			}
+		}
+		public double PositiveClassProbability
+		{
+			get
+			{
+				//this assumes a binary classification problem for now
+				if (_count > 0)
+				{
+					return 1.0 * (_values[1, 0] + _values[1, 1]) / _count;
+				}				
+				
+				return 0.5;
 			}
 		}
 	}

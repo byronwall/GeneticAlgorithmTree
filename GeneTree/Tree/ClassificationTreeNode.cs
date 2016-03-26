@@ -13,16 +13,22 @@ namespace GeneTree
 	[Serializable]
 	public class ClassificationTreeNode : TreeNode
 	{
-		public override bool TraverseData(DataPoint point, GeneticAlgorithmRunResults results)
+		public override TreeNode TraverseData(DataPoint point, GeneticAlgorithmRunResults results)
 		{
 			this._traverseCount++;
 			//-1 will be the no classificaiton route for now
+			
+			
+			
 			if (this.Classification == -1.0)
 			{
-				return false;
+				//TODO consider not returning a null here and instead returning the node so that it can be used
+				return null;
 			}
 			else
 			{
+				results.node_assoc.Add(Tuple.Create(point, this));
+				
 				//these are known to be ints since they are classes from a Codebook
 				results.count_classedData++;
 				
@@ -36,11 +42,14 @@ namespace GeneTree
 				results._matrix.AddItem(actualClass, (int)this.Classification);				
 				this.ProcessResultFromClassification(actualClass, this.Classification);
 				
-				return true;
+				//need to determine the probability (and then score for a given node)
+				
+				return this;
 			}
 		}
 
 		public double Classification;
+		public double ProbPrediction;
 		
 		public override bool IsTerminal
 		{

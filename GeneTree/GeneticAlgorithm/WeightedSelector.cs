@@ -26,6 +26,10 @@ namespace GeneTree
 		{
 			double test_val = rando.NextDouble() * max_weight;
 			double total = 0;
+			
+			if(_items.Count ==0){
+				return default(T);
+			}
 
 			foreach (var item in _items)
 			{

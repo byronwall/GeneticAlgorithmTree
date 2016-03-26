@@ -33,7 +33,7 @@ namespace GeneTree
 		
 		public abstract TreeNode CopyNonLinkingData();
 		public abstract void CreateRandom(GeneticAlgorithmManager ga_mgr);
-		public abstract bool TraverseData(DataPoint point, GeneticAlgorithmRunResults results);
+		public abstract TreeNode TraverseData(DataPoint point, GeneticAlgorithmRunResults results);
 		public abstract bool UpdateChildReference(TreeNode curRef, TreeNode newRef);
 		public abstract void ApplyRandomChangeToNodeValue(GeneticAlgorithmManager ga_mgr);
 		

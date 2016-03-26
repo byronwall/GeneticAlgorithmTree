@@ -51,25 +51,19 @@ namespace GeneTree
 			//TODO create this dir once it's needed
 			var new_dir = Directory.CreateDirectory("tree outputs\\" + DateTime.Now.Ticks);
 			
-			dataPointMgr.UpdateSubsetOfDatapoints(_gaOptions.prob_to_keep_data, rando);
-			
-			//HACK: data update only at start to ensure that trees are improving on same data
-			_gaOptions.populationSize = _gaOptions.seq_inner_population;
-			
+			_gaOptions.populationSize = _gaOptions.seq_inner_population;			
 			_gaOptions.generations = _gaOptions.seq_inner_generations;
+			
 			for (int run = 0; run < _gaOptions.seq_inner_run; run++)
 			{
-				//TODO use better logic to determine when to switch to new data
-				if (run % 5 == 0)
-				{
-					dataPointMgr.UpdateSubsetOfDatapoints(_gaOptions.prob_to_keep_data, rando);
-				}
 				Logger.WriteLine("starting run at run {0}", run);
+				
+				dataPointMgr.UpdateSubsetOfDatapoints(_gaOptions.prob_to_keep_data, rando);
 					
 				var trees = ProcessTheNextGeneration();
+				
 				trees[0].WriteToXmlFile(Path.Combine(new_dir.FullName, string.Format("{0}.xml", run)));
 			}
-				
 		}
 		
 		private List<Tree> ProcessPoolOfTrees(IEnumerable<Tree> trees, int generation)
@@ -94,6 +88,8 @@ namespace GeneTree
 				tree.ProcessDataThroughTree(dataPointMgr, results);
 				
 				//moving this out of selectivity since node count affects score
+
+				//TODO add this back in
 				tree.RemoveZeroCountNodes();
 				
 				//TODO improve override for non improving score
@@ -157,7 +153,10 @@ namespace GeneTree
 				Logger.WriteLine("");
 				foreach (var tree in treesInPopulation.Take(10))
 				{
-					Logger.WriteLine("{0:0.000} ({1})", tree._prevResults.GetMetricResult, tree._source);
+					Logger.WriteLine("{0:0.0000} ({2:0.0000}, {3}, {1})", 
+						tree._prevResults.GetMetricResult, 
+						tree._source, tree._prevResults.AverageLoss,
+						tree._prevResults.tree_nodeCount);
 				}
 				
 				foreach (var tree in treesInPopulation.Take(1))
@@ -171,14 +170,14 @@ namespace GeneTree
 				var operations = new List<Tuple<GeneticOperations.GeneticOperation, double>>();
 					
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SwapNodesBetweenTrees, _gaOptions.Prob_ops_swap));
-				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SplitNodeWithMostPopularClasses, _gaOptions.prob_node_split));
-				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.ChangeValueForNode, _gaOptions.prob_ops_change));
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SplitNodeAndOptimizeTests, _gaOptions.prob_node_split));
+				//operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.ChangeValueForNode, _gaOptions.prob_ops_change));
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.CreateRandomTree, _gaOptions.Prob_ops_new_tree));
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.OptimizeSplitForNode, 10.0));
 				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.OptimizeClassesForTree, 10.0));
 				
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.DeleteNodeFromTree, _gaOptions.prob_ops_delete));
 				//TODO reinstate the delete node option (force to NO CLASS)
-				//operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.DeleteNodeFromTree, _gaOptions.prob_ops_delete));
 					
 				var operation_picker = new WeightedSelector<GeneticOperations.GeneticOperation>(operations);
 				
@@ -192,7 +191,7 @@ namespace GeneTree
 				//moves things to the master list
 				treesInPopulation.AddRange(newCreations);
 				
-				OnProgressUpdated(100 * generationNumber / _gaOptions.generations);
+				OnProgressUpdated(100 * generationNumber / Math.Max(_gaOptions.generations, 1));
 			}
 
 			OnProgressUpdated(100);
@@ -234,6 +233,7 @@ namespace GeneTree
 					nonTermNodes.Enqueue(subNode);
 				}
 			}
+			
 			return tree;
 		}
 		

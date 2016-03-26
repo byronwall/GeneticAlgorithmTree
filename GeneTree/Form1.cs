@@ -23,6 +23,7 @@ namespace GeneTree
 			var action = e.Argument as Action;
 			if (action != null)
 			{
+				Debug.WriteLine("background worker is started on {0}", new object[]{ action.Method.Name });
 				action();
 			}
 			else
@@ -143,7 +144,7 @@ namespace GeneTree
 			//TODO make this path a dialog selector
 			//get the folder to load trees from
 			
-			string path = @"C:\projects\gene-tree\GeneTree\bin\Debug\tree outputs\635931079385345877";
+			string path = @"C:\projects\gene-tree\GeneTree\bin\Debug\tree outputs\635944883260906257";
 			
 			StartBackgroundWorker(new Action(() => ga_mgr.DoAllPredictions(path)));
 		}

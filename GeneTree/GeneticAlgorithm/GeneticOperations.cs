@@ -22,6 +22,12 @@ namespace GeneTree
 			Tree tree1 = treesInPopulation[rando.Next(treesInPopulation.Count())];
 			Tree tree2 = treesInPopulation[rando.Next(treesInPopulation.Count())];
 			
+			if (tree1._root.IsTerminal || tree2._root.IsTerminal)
+			{
+				//terminal node for a root means no useful swapping to be done
+				yield break;
+			}
+			
 			tree1.SetStructuralLocationsForNodes();
 			tree2.SetStructuralLocationsForNodes();
 			
@@ -31,15 +37,26 @@ namespace GeneTree
 			tree1_copy._source = "swap";
 			tree2_copy._source = "swap";
 			
-			//tries to pick good nodes to swap around			
-			var tree1_node_picker = new WeightedSelector<TreeNode>(
-				                        tree1._nodes.Select(c => Tuple.Create(c, (c._traverseCount + 1) * (c.matrix.GetObservedAccuracy() + 0.00001))));
+			//tries to pick good nodes to swap around
+			//TODO look into a better way to pick nodes		
+			//TODO make it easier to select a node with equal weight			
+			var tree1_node_picker = new WeightedSelector<YesNoMissingTreeNode>(
+				                        tree1.GetNodesOfType<YesNoMissingTreeNode>().Select(c => Tuple.Create(c, 1.0)));
 			
-			var tree2_node_picker = new WeightedSelector<TreeNode>(
-				                        tree2._nodes.Select(c => Tuple.Create(c, (c._traverseCount + 1) * (c.matrix.GetObservedAccuracy() + 0.00001))));
+			var tree2_node_picker = new WeightedSelector<YesNoMissingTreeNode>(
+				                        tree2.GetNodesOfType<YesNoMissingTreeNode>().Select(c => Tuple.Create(c, 1.0)));
 			
-			TreeNode node1 = tree1_copy.GetNodeAtStructualLocation(tree1_node_picker.PickRandom(ga_mgr.rando)._structuralLocation);
-			TreeNode node2 = tree2_copy.GetNodeAtStructualLocation(tree2_node_picker.PickRandom(ga_mgr.rando)._structuralLocation);
+			var node1_picked = tree1_node_picker.PickRandom(ga_mgr.rando);
+			var node2_picked = tree2_node_picker.PickRandom(ga_mgr.rando);
+			
+			if (node1_picked == null || node2_picked == null)
+			{
+				//trap exists for those trees where there are no classification nodes
+				yield break;
+			}
+			
+			TreeNode node1 = tree1_copy.GetNodeAtStructualLocation(node1_picked._structuralLocation);
+			TreeNode node2 = tree2_copy.GetNodeAtStructualLocation(node2_picked._structuralLocation);
 			
 			TreeNode.SwapNodesInTrees(node1, node2);
 			
@@ -63,9 +80,11 @@ namespace GeneTree
 			
 			TreeNode node1 = tree1_copy._nodes[rando.Next(tree1_copy._nodes.Count)];
 			
-			TreeNode node1_rando_term = TreeNode.TreeNodeFactory(ga_mgr, true, tree1_copy);
+			var node1_rando_term = TreeNode.TreeNodeFactory(ga_mgr, true, tree1_copy) as ClassificationTreeNode;
+			
 			//stick the new node into the old one's spot
 			
+			node1_rando_term.Classification = -1;
 			node1_rando_term._parent = node1._parent;
 			
 			tree1_copy.RemoveNodeWithChildren(node1);
@@ -77,7 +96,7 @@ namespace GeneTree
 				yield return tree1_copy;
 			}
 		}
-
+		
 		public static IEnumerable<Tree> ChangeValueForNode(GeneticAlgorithmManager ga_mgr, List<Tree> treesInPopulation)
 		{
 			//node parameter/value change
@@ -191,72 +210,212 @@ namespace GeneTree
 		
 		public static bool OptimizeTest(YesNoMissingTreeNode node1_copy, GeneticAlgorithmManager ga_mgr)
 		{
-			LessThanEqualTreeTest test = node1_copy.Test as LessThanEqualTreeTest;
+			if (node1_copy.Test is LessThanEqualTreeTest)
+			{
+				LessThanEqualTreeTest test = node1_copy.Test as LessThanEqualTreeTest;
 			
-			if (test == null)
+				if (test == null)
+				{
+					return false;
+				}
+				//iterate through all values, make split, test impurity
+				var values = ga_mgr.dataPointMgr._pointsToTest.Select(c => c._data[test.param]);
+				var all_uniques = values.Where(c => !c._isMissing).Select(c => c._value).Distinct().OrderBy(c => c).ToArray();
+				
+				List<double> all_splits = new List<double>();
+				for (int i = 1; i < all_uniques.Length; i++)
+				{
+					all_splits.Add(0.5 * (all_uniques[i] + all_uniques[i - 1]));
+				}
+				
+				double best_split = double.NaN;
+				double best_purity = double.MinValue;
+				
+				//TODO improve this selection for how many split points to consider
+				foreach (var split in all_splits.TakeEvery(all_splits.Count / 10 + 1))
+				{
+					//change the test value and find the best purity
+					test.valTest = split;
+					
+					var results = new GeneticAlgorithmRunResults(ga_mgr);
+					
+					//reset the node
+					node1_copy._tree._root.ResetTrackingDetails(ga_mgr, true);
+					
+					//TODO really need to remove this usage of gettestpoints
+					foreach (var dataPoint in ga_mgr.dataPointMgr._pointsToTest)
+					{
+						//TODO this probably does not need to go all the way down the tree
+						node1_copy._tree._root.TraverseData(dataPoint, results);
+					}
+					
+					//check the result of the split
+					var gini_d = node1_copy.matrix.GiniImpuritySqrt;
+					
+					double gini_split = 0.0;
+					int count = 0;
+					
+					foreach (var node in node1_copy._subNodes)
+					{
+						gini_split += node.matrix._count * node.matrix.GiniImpuritySqrt;
+						count += node.matrix._count;
+					}
+					
+					gini_split /= count;
+					
+					double gini_gain = gini_d - gini_split;
+					
+					if (gini_gain > best_purity)
+					{
+						best_split = split;
+						best_purity = gini_gain;
+					}
+				}
+				
+				test.valTest = best_split;
+			}
+			else if (node1_copy.Test is EqualTreeTest)
+			{
+				EqualTreeTest test = node1_copy.Test as EqualTreeTest;
+			
+				if (test == null)
+				{
+					return false;
+				}
+				//iterate through all values, make split, test impurity
+				var values = ga_mgr.dataPointMgr._pointsToTest.Select(c => c._data[test._param]);
+				var all_uniques = values.Where(c => !c._isMissing).Select(c => c._value).Distinct().OrderBy(c => c).ToArray();
+				
+				List<double> all_splits = new List<double>();
+				for (int i = 1; i < all_uniques.Length; i++)
+				{
+					all_splits.Add(0.5 * (all_uniques[i] + all_uniques[i - 1]));
+				}
+				
+				double best_split = double.NaN;
+				double best_purity = double.MinValue;
+				
+				//TODO improve this selection for how many split points to consider
+				foreach (var split in all_splits.TakeEvery(all_splits.Count / 10 + 1))
+				{
+					//change the test value and find the best purity
+					test._valTest = split;
+					
+					var results = new GeneticAlgorithmRunResults(ga_mgr);
+					
+					//reset the node
+					node1_copy._tree._root.ResetTrackingDetails(ga_mgr, true);
+					
+					//TODO really need to remove this usage of gettestpoints
+					foreach (var dataPoint in ga_mgr.dataPointMgr._pointsToTest)
+					{
+						//TODO this probably does not need to go all the way down the tree
+						node1_copy._tree._root.TraverseData(dataPoint, results);
+					}
+					
+					//check the result of the split
+					var gini_d = node1_copy.matrix.GiniImpuritySqrt;
+					
+					double gini_split = 0.0;
+					int count = 0;
+					
+					foreach (var node in node1_copy._subNodes)
+					{
+						gini_split += node.matrix._count * node.matrix.GiniImpuritySqrt;
+						count += node.matrix._count;
+					}
+					
+					gini_split /= count;
+					
+					double gini_gain = gini_d - gini_split;
+					
+					if (gini_gain > best_purity)
+					{
+						best_split = split;
+						best_purity = gini_gain;
+					}
+				}
+				
+				test._valTest = best_split;
+			}
+			else if (node1_copy.Test is LinearComboTreeTest)
+			{
+				LinearComboTreeTest test = node1_copy.Test as LinearComboTreeTest;
+				
+				if (test == null)
+				{
+					return false;
+				}
+				//iterate through all values, make split, test impurity
+				var all_uniques = ga_mgr.dataPointMgr._pointsToTest
+					.Where(c => !test.IsMissingTest(c))
+					.Select(c => test.GetValue(c))
+					.Distinct()
+					.OrderBy(c => c).ToArray();
+				
+				List<double> all_splits = new List<double>();
+				all_splits.AddRange(all_uniques);
+				
+				double best_split = double.NaN;
+				double best_purity = double.MinValue;
+				
+				if (all_splits.Count > 15)
+				{
+					return false;
+				}
+				
+				//TODO improve this selection for how many split points to consider
+				foreach (var split in all_splits)
+				{
+					//change the test value and find the best purity
+					test.intercept = split;
+					
+					var results = new GeneticAlgorithmRunResults(ga_mgr);
+					
+					//reset the node
+					node1_copy._tree._root.ResetTrackingDetails(ga_mgr, true);
+					
+					//TODO really need to remove this usage of gettestpoints
+					foreach (var dataPoint in ga_mgr.dataPointMgr._pointsToTest)
+					{
+						//TODO this probably does not need to go all the way down the tree
+						node1_copy._tree._root.TraverseData(dataPoint, results);
+					}
+					
+					//check the result of the split
+					var gini_d = node1_copy.matrix.GiniImpuritySqrt;
+					
+					double gini_split = 0.0;
+					int count = 0;
+					
+					foreach (var node in node1_copy._subNodes)
+					{
+						gini_split += node.matrix._count * node.matrix.GiniImpuritySqrt;
+						count += node.matrix._count;
+					}
+					
+					gini_split /= count;
+					
+					double gini_gain = gini_d - gini_split;
+					
+					if (gini_gain > best_purity)
+					{
+						best_split = split;
+						best_purity = gini_gain;
+					}
+				}
+				
+				test.intercept = best_split;
+			}
+			else
 			{
 				return false;
 			}
-			//iterate through all values, make split, test impurity
-			var values = test._testCol._values;
-			var all_uniques = values.Where(c => !c._isMissing).Select(c => c._value).Distinct().OrderBy(c => c).ToArray();
-				
-			List<double> all_splits = new List<double>();
-			for (int i = 1; i < all_uniques.Length; i++)
-			{
-				all_splits.Add(0.5 * (all_uniques[i] + all_uniques[i - 1]));
-			}
-				
-			double best_split = double.NaN;
-			double best_purity = double.MinValue;
-				
-			//TODO improve this selection for how many split points to consider
-			foreach (var split in all_splits.TakeEvery(all_splits.Count / 10 + 1))
-			{
-				//change the test value and find the best purity
-				test.valTest = split;
-					
-				var results = new GeneticAlgorithmRunResults(ga_mgr);
-					
-				//reset the node
-				node1_copy._tree._root.ResetTrackingDetails(ga_mgr, true);
-					
-				//TODO really need to remove this usage of gettestpoints
-				foreach (var dataPoint in ga_mgr.dataPointMgr._pointsToTest)
-				{
-					//TODO this probably does not need to go all the way down the tree
-					node1_copy._tree._root.TraverseData(dataPoint, results);
-				}
-					
-				//check the result of the split
-				var gini_d = node1_copy.matrix.GiniImpuritySqrt;
-					
-				double gini_split = 0.0;
-				int count = 0;
-					
-				foreach (var node in node1_copy._subNodes)
-				{
-					gini_split += node.matrix._count * node.matrix.GiniImpuritySqrt;
-					count += node.matrix._count;
-				}
-					
-				gini_split /= count;
-					
-				double gini_gain = gini_d - gini_split;
-					
-				if (gini_gain > best_purity)
-				{
-					best_split = split;
-					best_purity = gini_gain;
-				}
-			}
-				
-			test.valTest = best_split;
 			
 			return true;
 		}
 
-		public static IEnumerable<Tree> SplitNodeWithMostPopularClasses(GeneticAlgorithmManager ga_mgr, List<Tree> treesInPopulation)
+		public static IEnumerable<Tree> SplitNodeAndOptimizeTests(GeneticAlgorithmManager ga_mgr, List<Tree> treesInPopulation)
 		{
 			//find a grab a tree
 			Tree tree1 = treesInPopulation[ga_mgr.rando.Next(treesInPopulation.Count())];

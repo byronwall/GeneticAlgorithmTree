@@ -53,17 +53,31 @@ namespace GeneTree
 			var probs = new List<Tuple<string, double>>();
 			foreach (var dataPoint in data_mgr._dataPoints)
 			{
+				double pred_value = 0.0;
 				var results = new GeneticAlgorithmRunResults(ga_mgr);
+				int count = 0;
 				foreach (var tree in treesToTest)
 				{
-					tree._root.TraverseData(dataPoint, results);
+					var node = tree._root.TraverseData(dataPoint, results);
+					
+					ClassificationTreeNode termNode = node as ClassificationTreeNode;
+					
+					if (termNode == null)
+					{
+						continue;
+					}
+					else
+					{
+						pred_value += termNode.ProbPrediction;
+						count++;
+					}
 				}
 				//at this point, results has the confusion table for all the predictions
 				//max row is teh predicted value
 				//need to return a probability for prediction which is based on the row percents
 				//need to do something for the 0 prediction rows
 				//TODO this is hardcoded to a binary selection, generalize it
-				probs.Add(Tuple.Create(dataPoint._id, results._matrix.GetClassProbabilities()[1]));
+				probs.Add(Tuple.Create(dataPoint._id, pred_value / count));
 			}
 			using (StreamWriter sw = new StreamWriter("submission_" + DateTime.Now.Ticks + ".csv"))
 			{

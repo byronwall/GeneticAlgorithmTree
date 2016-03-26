@@ -6,24 +6,62 @@ take nodes with a large NO CLASS and see if they can be split or reclassed bette
 
 really need to find a way to go after the small side of the classifier: group 0 has an awful success rate
 
-node optimizer might work best with the node splitter
- - work great together since it needs to generate a test and new decision nodes
-
 is it possible to build a second layer of trees for anything that is classed as 0 on the first round?  try to break up the split better
 
 add the missing count to the output summary
 
 use a weighted selector to choose which trees to pick nodes from
 
-update the tree to return probabilities instead of a single class (or update the tree to return scores which can be used for a loss function)
+create a shorter data file that is faster to load?
+ - especially relevant if only taking 50% at a time
 
-compute a proper loss function for the tree search part
+create some synthetic data in the program so that is it easier to determine the results of a given run
+
+verify modifications to the score are working correctly with a negative number - or - just change log loss to be positive and minimize the error
+
+do a prediction of the CV error with the out of bag sample
+
+some node divisions only have a single path with traversal, these should be backed up a level to avoid the extra comparison
+
+add the probability value to the tree output at the end
+
+changes are better suited to go lower in the tree as the generation progresses (much hard to make a good move at the top of tree?)
+
+output some graph metrics (max depth, etc.)
+
+possible to use kappa with the metric as well? does this produce a tree that is more robust (since it splits better)?
+
+is it possible or useful to shoot for a specific score on each generation (i.e. stop at 0.45 loss)?
+
+stop making new trees at some point?  or have a means of letting the randomness in to the next round... then see if these are ever used
+
+add the score and cv score to the output file name
+
+provide a means of doing things with multiple cores
+
+do random trees get better if they are generated with test optimization?
+
+verify that normalization is being done the same to test/training data (maybe remove norm)
+
+need to capture those data points which are not getting classified and build a tree that works on those
+
+need to use some validation measure to help grow the trees... avoid overfitting when using NO CLASS
+
+remove the LinearComboTreeTest since it does not show up significantly
+
+make the UI pieces dock so that it can be maximized
+
+review some of the trees created to see how deep/overfit they are
 
 next commit message
- - added some add'l calculations to the ConfusionMatrix class, they are not helping much
- - modified the score metric to add a small piece to values that could be 0
- - added a GeneticOperation to optimize the split on a node using the Gini impurity as the test
- - output source during generations
- - added a new operation to set the node class to the best class (by row max) in the data.  it overwrites NO CLASS nodes also
- - added a collection for _testValues to prevent the missing test value showing up for categorical tests
- 
+ - allow the nodes to return a probability (score) instead of a simple yes/no
+ - using log loss for the tree optimization now
+ - update the tree to return probabilities instead of a single class (or update the tree to return scores which can be used for a loss function)
+ - node optimizer supports following a node split if the DataColumn is supported
+ - optimize value works on the test data only instead of all values
+ - added support for categorical variables to be optimized (if fewer than 15 categories)
+ - bypass the CategorySubsetTest to avoid creating large tree sections that are slow
+ - updated scoring metric to use the "large number" approach to weighting important items, gets rid of the power calculations
+ - TraverseData now returns the final node that was reached (or null for a NO CLASS)
+ - added a linear combo test node with the ability to optimize the intercept
+ - modified the log loss calculation to ignore those nodes which are NO CLASS

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -14,6 +16,7 @@ namespace GeneTree
 	[XmlInclude(typeof(LessThanEqualTreeTest))]
 	[XmlInclude(typeof(MissingTreeTest))]
 	[XmlInclude(typeof(CategorySubsetTreeTest))]
+	[XmlInclude(typeof(LinearComboTreeTest))]
 	public abstract class TreeTest
 	{
 		public virtual bool CanChangeValue{ get { return false; } }
@@ -64,10 +67,35 @@ namespace GeneTree
 			switch (column._type)
 			{
 				case DataColumn.DataValueTypes.NUMBER:
-					LessThanEqualTreeTest test = new LessThanEqualTreeTest();
-					test.param = col_param;
-					test.valTest = column.GetTestValue(rando);
-					output = test;
+					if (rando.NextDouble() < 0.1)
+					{
+						LinearComboTreeTest linearTest = new LinearComboTreeTest();
+						linearTest.scaling = rando.NextDouble() * 10.0 - 5.0;
+						linearTest.intercept = rando.NextDouble();
+						
+						int param1 = col_param;
+						
+						//get a second column
+						int param2 = 0;
+						do
+						{
+							param2 = rando.Next(dataPointMgr._columns.Count);
+							
+						} while(dataPointMgr._columns[param2]._type != DataColumn.DataValueTypes.NUMBER &&
+						        param1 == param2);
+						
+						linearTest.param1 = param1;
+						linearTest.param2 = param2;
+						
+						output = linearTest;
+					}
+					else
+					{
+						LessThanEqualTreeTest test = new LessThanEqualTreeTest();
+						test.param = col_param;
+						test.valTest = column.GetTestValue(rando);
+						output = test;
+					}
 					
 					break;
 				case DataColumn.DataValueTypes.CATEGORY:
@@ -77,7 +105,8 @@ namespace GeneTree
 					
 					var category_count = categories.Count();
 					//toss a coin to decide on subsetter
-					if (category_count >= 3 && rando.NextDouble() < prob_test_category_subset)
+					//TODO remove this bypass to avoid creating subset tests
+					if (false && category_count >= 3 && rando.NextDouble() < prob_test_category_subset)
 					{
 						var subset_test = new CategorySubsetTreeTest();
 						subset_test._param = col_param;

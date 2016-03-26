@@ -156,7 +156,7 @@ namespace GeneTree
 				AddNodeWithChildren(subNode);
 			}
 		}
-		public bool TraverseData(DataPoint point, GeneticAlgorithmRunResults results)
+		public TreeNode TraverseData(DataPoint point, GeneticAlgorithmRunResults results)
 		{
 			return _root.TraverseData(point, results);
 		}
@@ -186,14 +186,15 @@ namespace GeneTree
 				} 
 			}
 			
-			
-			ConfusionMatrix matrix = new ConfusionMatrix(dataPointMgr.classes.Length);
 			//TODO this shoudl not be working directly on pointsToTest... need to send that as a parameter
 			foreach (var dataPoint in dataPointMgr._pointsToTest)
 			{
 				results.count_allData++;
 				TraverseData(dataPoint, results);
 			}
+			
+			//at this point, have the results for the run through, need to determine a score
+			results.ProcessScoresAfterTraverse();
 			
 			results.tree_nodeCount = _nodes.Count;
 

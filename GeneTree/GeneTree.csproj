@@ -98,6 +98,7 @@
     <Compile Include="Tree\DecisionTreeNode.cs" />
     <Compile Include="Tree\EqualTreeTest.cs" />
     <Compile Include="Tree\LessThanEqualTreeTest.cs" />
+    <Compile Include="Tree\LinearComboTreeTest.cs" />
     <Compile Include="Tree\MissingTreeTest.cs" />
     <Compile Include="Tree\Tree.cs" />
     <Compile Include="Tree\TreeNode.cs" />

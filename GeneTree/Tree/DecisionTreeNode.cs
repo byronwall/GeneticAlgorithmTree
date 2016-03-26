@@ -13,7 +13,7 @@ namespace GeneTree
 	[Serializable]
 	public class DecisionTreeNode : TreeNode
 	{
-		public override bool TraverseData(DataPoint point, GeneticAlgorithmRunResults results)
+		public override TreeNode TraverseData(DataPoint point, GeneticAlgorithmRunResults results)
 		{
 			this._traverseCount++;
 			
