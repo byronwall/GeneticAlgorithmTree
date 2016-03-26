@@ -208,6 +208,62 @@ namespace GeneTree
 			
 		}
 		
+		public static void PruneTreeOfUselessNodes(Tree tree)
+		{
+			//will go through and remove useless nodes from the tree
+			
+			Stack<TreeNode> nodes = new Stack<TreeNode>();
+			
+			nodes.Push(tree._root);
+			
+			while (nodes.Count > 0)
+			{
+				var node = nodes.Pop();
+				
+				TreeNode nodeToKeep = null;
+				int nodesWorthKeeping = 0;
+				foreach (var subNode in node._subNodes)
+				{
+					if (subNode._traverseCount > 0)
+					{
+						nodeToKeep = subNode;
+						nodesWorthKeeping++;
+					}						
+				}
+				
+				if (nodesWorthKeeping == 1)
+				{
+					//need to bring the good node up and delete the others
+					nodeToKeep._parent = node._parent;
+					if (node == tree._root)
+					{
+						tree._root = nodeToKeep;
+					}
+					else
+					{
+						node._parent.UpdateChildReference(node, nodeToKeep);
+					}
+					
+					tree.RemoveNodeWithChildren(node);
+					tree.AddNodeWithChildren(nodeToKeep);
+				}
+				else
+				{
+					foreach (var nodeToStack in node._subNodes)
+					{
+						nodes.Push(nodeToStack);
+					}
+				}
+				
+			}
+			
+			//for now this will target subnodes which all class to the same spot (directly)
+			
+			//will also target those nodes which only have a single subnode that is traversed
+			
+			//boths cases will replace the parent node with a NO CLASS or the corresponding terminal node which is the same as others
+		}
+		
 		public static bool OptimizeTest(YesNoMissingTreeNode node1_copy, GeneticAlgorithmManager ga_mgr)
 		{
 			if (node1_copy.Test is LessThanEqualTreeTest)
@@ -243,6 +299,9 @@ namespace GeneTree
 					node1_copy._tree._root.ResetTrackingDetails(ga_mgr, true);
 					
 					//TODO really need to remove this usage of gettestpoints
+					
+					//node1_copy._tree.ProcessDataThroughTree(ga_mgr.dataPointMgr, results);
+					
 					foreach (var dataPoint in ga_mgr.dataPointMgr._pointsToTest)
 					{
 						//TODO this probably does not need to go all the way down the tree

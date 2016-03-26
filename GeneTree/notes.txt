@@ -29,8 +29,6 @@ changes are better suited to go lower in the tree as the generation progresses (
 
 output some graph metrics (max depth, etc.)
 
-possible to use kappa with the metric as well? does this produce a tree that is more robust (since it splits better)?
-
 is it possible or useful to shoot for a specific score on each generation (i.e. stop at 0.45 loss)?
 
 stop making new trees at some point?  or have a means of letting the randomness in to the next round... then see if these are ever used
@@ -40,8 +38,6 @@ add the score and cv score to the output file name
 provide a means of doing things with multiple cores
 
 do random trees get better if they are generated with test optimization?
-
-verify that normalization is being done the same to test/training data (maybe remove norm)
 
 need to capture those data points which are not getting classified and build a tree that works on those
 
@@ -53,15 +49,13 @@ make the UI pieces dock so that it can be maximized
 
 review some of the trees created to see how deep/overfit they are
 
-next commit message
- - allow the nodes to return a probability (score) instead of a simple yes/no
- - using log loss for the tree optimization now
- - update the tree to return probabilities instead of a single class (or update the tree to return scores which can be used for a loss function)
- - node optimizer supports following a node split if the DataColumn is supported
- - optimize value works on the test data only instead of all values
- - added support for categorical variables to be optimized (if fewer than 15 categories)
- - bypass the CategorySubsetTest to avoid creating large tree sections that are slow
- - updated scoring metric to use the "large number" approach to weighting important items, gets rid of the power calculations
- - TraverseData now returns the final node that was reached (or null for a NO CLASS)
- - added a linear combo test node with the ability to optimize the intercept
- - modified the log loss calculation to ignore those nodes which are NO CLASS
+create a "ReplaceNodeWithAnotherNode" to provide a single logic for moving nodes around on a tree
+ - needs to handle the case when the node to move is the root
+
+apply the penalty for percent classified on a sliding scale of sorts (avoid sharp falloff at limit) = hinged loss type of function
+
+notes for next commit:
+ - removed traverseCount from the XML file output, see #62
+ - removed the default normalization step that was being done... creates issues for different data loads
+ - added a pruning operation in the GeneticOperation class that shortens trees that only have a single subNode being traversed.  It bumps that used node to the parent position and drops the others., see #45
+ - attempted to add a hinged loss to the percent classified part of the metric to allow for a soft overshoot

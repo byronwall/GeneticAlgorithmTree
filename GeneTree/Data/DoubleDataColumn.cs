@@ -39,16 +39,9 @@ namespace GeneTree
 				if (_values[i]._isMissing)
 				{
 					//assumes min = 0
-					_values[i]._value = -1.0;
-				}
-				else
-				{
-					_values[i]._value = (_values[i]._value - _min) / _range;
+					_values[i]._value = _min - 1;
 				}
 			}
-			
-			//second step here ensures that min/max are correct (should be 0 to 1 but this is a double check)
-			ComputeMinMaxRange();
 		}
 		public override string GetSummaryString()
 		{

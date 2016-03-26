@@ -79,15 +79,12 @@ namespace GeneTree
 		{
 			get
 			{
-				if (this.GetPercentClassified < ga_mgr._gaOptions.eval_percentClass_min)
-				{
-					return double.MinValue;
-				}				
-				
-				
+
 				double node_large_number = 10000;
-				double class_number = 10;
-				double kappa_number = 15;
+				double kappa_number = 10;
+				
+				double class_number = (this.GetPercentClassified < ga_mgr._gaOptions.Eval_percentClass_min) ?
+					((this.GetPercentClassified < ga_mgr._gaOptions.Eval_percentClass_min / 2) ? 0 : ga_mgr._gaOptions.Eval_percentClass_min) : 3;
 				
 				double score = 1.0 / AverageLoss *
 				               (class_number / (1 - this.GetPercentClassified + class_number)) *

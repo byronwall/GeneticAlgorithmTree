@@ -26,6 +26,8 @@ namespace GeneTree
 		
 		[XmlIgnore]
 		public Tree _tree;
+		
+		[XmlIgnore]
 		public int _traverseCount;
 		
 		[XmlIgnore]

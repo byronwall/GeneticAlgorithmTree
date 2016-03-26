@@ -87,10 +87,8 @@ namespace GeneTree
 				results = new GeneticAlgorithmRunResults(this);
 				tree.ProcessDataThroughTree(dataPointMgr, results);
 				
-				//moving this out of selectivity since node count affects score
-
-				//TODO add this back in
 				tree.RemoveZeroCountNodes();
+				GeneticOperations.PruneTreeOfUselessNodes(tree);
 				
 				//TODO improve override for non improving score
 				//will add kepeers if there was no previous result or if the score improved or randomly
