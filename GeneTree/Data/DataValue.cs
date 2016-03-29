@@ -11,7 +11,3 @@ namespace GeneTree
 		public double _value;
 	}
 }
-
-
-
-

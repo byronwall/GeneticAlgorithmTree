@@ -294,40 +294,12 @@ namespace GeneTree
 					test.valTest = split;
 					
 					var results = new GeneticAlgorithmRunResults(ga_mgr);
+					node1_copy._tree.ProcessDataThroughTree(ga_mgr.dataPointMgr, results, ga_mgr.dataPointMgr._pointsToTest);
 					
-					//reset the node
-					node1_copy._tree._root.ResetTrackingDetails(ga_mgr, true);
-					
-					//TODO really need to remove this usage of gettestpoints
-					
-					//node1_copy._tree.ProcessDataThroughTree(ga_mgr.dataPointMgr, results);
-					
-					foreach (var dataPoint in ga_mgr.dataPointMgr._pointsToTest)
-					{
-						//TODO this probably does not need to go all the way down the tree
-						node1_copy._tree._root.TraverseData(dataPoint, results);
-					}
-					
-					//check the result of the split
-					var gini_d = node1_copy.matrix.GiniImpuritySqrt;
-					
-					double gini_split = 0.0;
-					int count = 0;
-					
-					foreach (var node in node1_copy._subNodes)
-					{
-						gini_split += node.matrix._count * node.matrix.GiniImpuritySqrt;
-						count += node.matrix._count;
-					}
-					
-					gini_split /= count;
-					
-					double gini_gain = gini_d - gini_split;
-					
-					if (gini_gain > best_purity)
+					if (-results.AverageLoss > best_purity)
 					{
 						best_split = split;
-						best_purity = gini_gain;
+						best_purity = -results.AverageLoss;
 					}
 				}
 				
@@ -362,109 +334,16 @@ namespace GeneTree
 					
 					var results = new GeneticAlgorithmRunResults(ga_mgr);
 					
-					//reset the node
-					node1_copy._tree._root.ResetTrackingDetails(ga_mgr, true);
+					node1_copy._tree.ProcessDataThroughTree(ga_mgr.dataPointMgr, results, ga_mgr.dataPointMgr._pointsToTest);
 					
-					//TODO really need to remove this usage of gettestpoints
-					foreach (var dataPoint in ga_mgr.dataPointMgr._pointsToTest)
-					{
-						//TODO this probably does not need to go all the way down the tree
-						node1_copy._tree._root.TraverseData(dataPoint, results);
-					}
-					
-					//check the result of the split
-					var gini_d = node1_copy.matrix.GiniImpuritySqrt;
-					
-					double gini_split = 0.0;
-					int count = 0;
-					
-					foreach (var node in node1_copy._subNodes)
-					{
-						gini_split += node.matrix._count * node.matrix.GiniImpuritySqrt;
-						count += node.matrix._count;
-					}
-					
-					gini_split /= count;
-					
-					double gini_gain = gini_d - gini_split;
-					
-					if (gini_gain > best_purity)
+					if (-results.AverageLoss > best_purity)
 					{
 						best_split = split;
-						best_purity = gini_gain;
+						best_purity = -results.AverageLoss;
 					}
 				}
 				
 				test._valTest = best_split;
-			}
-			else if (node1_copy.Test is LinearComboTreeTest)
-			{
-				LinearComboTreeTest test = node1_copy.Test as LinearComboTreeTest;
-				
-				if (test == null)
-				{
-					return false;
-				}
-				//iterate through all values, make split, test impurity
-				var all_uniques = ga_mgr.dataPointMgr._pointsToTest
-					.Where(c => !test.IsMissingTest(c))
-					.Select(c => test.GetValue(c))
-					.Distinct()
-					.OrderBy(c => c).ToArray();
-				
-				List<double> all_splits = new List<double>();
-				all_splits.AddRange(all_uniques);
-				
-				double best_split = double.NaN;
-				double best_purity = double.MinValue;
-				
-				if (all_splits.Count > 15)
-				{
-					return false;
-				}
-				
-				//TODO improve this selection for how many split points to consider
-				foreach (var split in all_splits)
-				{
-					//change the test value and find the best purity
-					test.intercept = split;
-					
-					var results = new GeneticAlgorithmRunResults(ga_mgr);
-					
-					//reset the node
-					node1_copy._tree._root.ResetTrackingDetails(ga_mgr, true);
-					
-					//TODO really need to remove this usage of gettestpoints
-					foreach (var dataPoint in ga_mgr.dataPointMgr._pointsToTest)
-					{
-						//TODO this probably does not need to go all the way down the tree
-						node1_copy._tree._root.TraverseData(dataPoint, results);
-					}
-					
-					//check the result of the split
-					var gini_d = node1_copy.matrix.GiniImpuritySqrt;
-					
-					double gini_split = 0.0;
-					int count = 0;
-					
-					foreach (var node in node1_copy._subNodes)
-					{
-						gini_split += node.matrix._count * node.matrix.GiniImpuritySqrt;
-						count += node.matrix._count;
-					}
-					
-					gini_split /= count;
-					
-					double gini_gain = gini_d - gini_split;
-					
-					if (gini_gain > best_purity)
-					{
-						best_split = split;
-						best_purity = gini_gain;
-					}
-				}
-				
-				test.intercept = best_split;
 			}
 			else
 			{

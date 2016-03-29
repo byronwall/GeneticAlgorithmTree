@@ -17,7 +17,6 @@ namespace GeneTree
 
 		public ConfusionMatrix(int size)
 		{
-			//TODO allow this matrix to detect when no classifications were made for an entire class
 			this._size = size;
 			_values = new int[size, size];
 		}
@@ -74,12 +73,6 @@ namespace GeneTree
 				}
 				sb.Append("\r\n");
 			}
-			
-			sb.AppendLine(string.Format("DOR = {0}", DiagnosticOddsRatio));
-			sb.AppendLine(string.Format("F1Score = {0}", F1Score));
-			sb.AppendLine(string.Format("max row: {0}", GetRowWithMaxCount()));
-			sb.AppendLine(string.Format("obs: {0} \t exp: {1}", GetObservedAccuracy(), GetExpectedAccuracy()));
-			sb.AppendLine(string.Format("columns with data = {0}", _columnsWithData));
 			
 			return sb.ToString();
 		}

@@ -7,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CefSharp;
+using CefSharp.WinForms;
 
 namespace GeneTree
 {
@@ -85,6 +87,15 @@ namespace GeneTree
 			prop_gaOptions.SelectedObject = ga_mgr._gaOptions;
 						
 			ga_mgr.ProgressUpdated += ga_mgr_ProgressUpdated;
+			
+			/* code will load the browser with a d3 viz
+			ChromiumWebBrowser browser;
+			Cef.Initialize(new CefSettings());
+			browser = new ChromiumWebBrowser("http://bl.ocks.org/mbostock/4062045");
+			
+			tabBrowser.Controls.Add(browser);
+			browser.Dock = DockStyle.Fill;
+			*/
 		}
 		
 		private void btnPoolRando_Click(object sender, EventArgs e)
@@ -144,7 +155,7 @@ namespace GeneTree
 			//TODO make this path a dialog selector
 			//get the folder to load trees from
 			
-			string path = @"C:\projects\gene-tree\GeneTree\bin\Debug\tree outputs\635944883260906257";
+			string path = @"C:\projects\gene-tree\GeneTree\bin\Debug\tree outputs\635945481133886798";
 			
 			StartBackgroundWorker(new Action(() => ga_mgr.DoAllPredictions(path)));
 		}
@@ -162,6 +173,10 @@ namespace GeneTree
 			}
 			
 			bw.RunWorkerAsync(action);
+		}
+		void Form1Load(object sender, EventArgs e)
+		{
+	
 		}
 	}
 }

@@ -4,7 +4,7 @@ namespace GeneTree
 {
 	public class GeneticAlgorithmOptions
 	{
-		public double eval_percentClass_min = 0.4;
+		public double eval_percentClass_min = 0.75;
 		public double Eval_percentClass_min
 		{
 			get
@@ -147,7 +147,7 @@ namespace GeneTree
 			}
 		}
 		
-		public double prob_to_keep_data = 0.100;
+		public double prob_to_keep_data = 0.150;
 		public double Prob_to_keep_data
 		{
 			get
@@ -199,7 +199,7 @@ namespace GeneTree
 			}
 		}
 
-		public int seq_inner_population = 100;
+		public int seq_inner_population = 120;
 		public int Seq_inner_population
 		{
 			get
@@ -212,7 +212,7 @@ namespace GeneTree
 			}
 		}
 
-		public int seq_inner_generations = 75;
+		public int seq_inner_generations = 40;
 		public int Seq_inner_generations
 		{
 			get
@@ -225,33 +225,7 @@ namespace GeneTree
 			}
 		}
 
-		public int seq_middle_generations = 50;
-		public int Seq_middle_generations
-		{
-			get
-			{
-				return seq_middle_generations;
-			}
-			set
-			{
-				seq_middle_generations = value;
-			}
-		}
-
-		public int seq_outer_generations = 100;
-		public int Seq_outer_generations
-		{
-			get
-			{
-				return seq_outer_generations;
-			}
-			set
-			{
-				seq_outer_generations = value;
-			}
-		}
-
-		public int seq_inner_run = 100;
+		public int seq_inner_run = 200;
 		public int Seq_inner_run
 		{
 			get
@@ -264,18 +238,6 @@ namespace GeneTree
 			}
 		}
 
-		public int seq_outer_run = 1;
-		public int Seq_outer_run
-		{
-			get
-			{
-				return seq_outer_run;
-			}
-			set
-			{
-				seq_outer_run = value;
-			}
-		}
 	}
 }
 

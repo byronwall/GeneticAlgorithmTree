@@ -10,6 +10,7 @@ using System.Xml.Serialization;
 using MoreLinq;
 namespace GeneTree
 {
+	[Obsolete]
 	public class LinearComboTreeTest : TreeTest
 	{
 		//need to decide on two parameters

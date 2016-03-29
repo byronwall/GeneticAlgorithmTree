@@ -15,7 +15,7 @@ namespace GeneTree
 		
 		public override double GetTestValue(Random rando)
 		{
-			return rando.NextDouble() * (_max - _min) + _min;
+			return rando.NextDouble() * _range + _min;
 		}
 
 		public DoubleDataColumn()
@@ -25,23 +25,13 @@ namespace GeneTree
 
 		void ComputeMinMaxRange()
 		{
-			_min = _values.Where(c=>!c._isMissing).Min(x => x._value);
-			_max = _values.Where(c=>!c._isMissing).Max(x => x._value);
+			_min = _values.Where(c => !c._isMissing).Min(x => x._value);
+			_max = _values.Where(c => !c._isMissing).Max(x => x._value);
 			_range = (_max - _min);
 		}
 		public override void ProcessRanges()
 		{
 			ComputeMinMaxRange();
-			
-			//do a normalization step
-			for (int i = 0; i < _values.Count; i++)
-			{
-				if (_values[i]._isMissing)
-				{
-					//assumes min = 0
-					_values[i]._value = _min - 1;
-				}
-			}
 		}
 		public override string GetSummaryString()
 		{
@@ -49,7 +39,3 @@ namespace GeneTree
 		}
 	}
 }
-
-
-
-

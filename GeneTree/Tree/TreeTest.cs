@@ -52,50 +52,13 @@ namespace GeneTree
 			var col_param = rando.Next(dataPointMgr._columns.Count);
 			DataColumn column = dataPointMgr._columns[col_param];
 			
-			double prob_missing_test = 0.4;
-			double prob_test_category_subset = 0.25;
-			
-			//TODO prob missing should be a part of ga_mgr
-			//TODO this is currently bypassed
-			if (false && column._hasMissingValues && rando.NextDouble() < prob_missing_test)
-			{
-				MissingTreeTest test = new MissingTreeTest();
-				test._param = col_param;
-				return test;
-			}
-			
 			switch (column._type)
 			{
 				case DataColumn.DataValueTypes.NUMBER:
-					if (rando.NextDouble() < 0.1)
-					{
-						LinearComboTreeTest linearTest = new LinearComboTreeTest();
-						linearTest.scaling = rando.NextDouble() * 10.0 - 5.0;
-						linearTest.intercept = rando.NextDouble();
-						
-						int param1 = col_param;
-						
-						//get a second column
-						int param2 = 0;
-						do
-						{
-							param2 = rando.Next(dataPointMgr._columns.Count);
-							
-						} while(dataPointMgr._columns[param2]._type != DataColumn.DataValueTypes.NUMBER &&
-						        param1 == param2);
-						
-						linearTest.param1 = param1;
-						linearTest.param2 = param2;
-						
-						output = linearTest;
-					}
-					else
-					{
-						LessThanEqualTreeTest test = new LessThanEqualTreeTest();
-						test.param = col_param;
-						test.valTest = column.GetTestValue(rando);
-						output = test;
-					}
+					LessThanEqualTreeTest test = new LessThanEqualTreeTest();
+					test.param = col_param;
+					test.valTest = column.GetTestValue(rando);
+					output = test;
 					
 					break;
 				case DataColumn.DataValueTypes.CATEGORY:
@@ -105,27 +68,12 @@ namespace GeneTree
 					
 					var category_count = categories.Count();
 					//toss a coin to decide on subsetter
-					//TODO remove this bypass to avoid creating subset tests
-					if (false && category_count >= 3 && rando.NextDouble() < prob_test_category_subset)
-					{
-						var subset_test = new CategorySubsetTreeTest();
-						subset_test._param = col_param;
-						
-						//ensure at least two choices here... otherwise defaults to equality
-						int categories_to_keep = 2 + rando.Next(category_count - 2);
-						subset_test._values.AddRange(categories.OrderBy(c => rando.NextDouble()).Take(categories_to_keep));
-						
-						output = subset_test;
-						break;
-					}
-					else
-					{
-						EqualTreeTest test_eq = new EqualTreeTest();
-						test_eq._param = col_param;
-						test_eq._valTest = column.GetTestValue(rando);
-						output = test_eq;
-						break;
-					}
+					EqualTreeTest test_eq = new EqualTreeTest();
+					test_eq._param = col_param;
+					test_eq._valTest = column.GetTestValue(rando);
+					output = test_eq;
+					break;
+					
 				default:
 					throw new ArgumentOutOfRangeException();
 			}

@@ -46,21 +46,6 @@ namespace GeneTree
 		public WeightedSelector(IEnumerable<Tuple<T, double>> items)
 		{
 			_items.AddRange(items);
-			return;
-			
-			//TODO remove this extra stuff
-			foreach (var item in items)
-			{
-				if (item.Item2 > 0)
-				{
-					_items.Add(item);
-				}
-			}
-			
-			if (_items.Count == 0)
-			{
-				throw new Exception("no items were added to picker since all were 0");
-			}
 		}
 	}
 	public static class WeightedSelector
@@ -71,6 +56,3 @@ namespace GeneTree
 		}
 	}
 }
-
-
-

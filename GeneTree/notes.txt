@@ -12,24 +12,11 @@ add the missing count to the output summary
 
 use a weighted selector to choose which trees to pick nodes from
 
-create a shorter data file that is faster to load?
- - especially relevant if only taking 50% at a time
-
 create some synthetic data in the program so that is it easier to determine the results of a given run
-
-verify modifications to the score are working correctly with a negative number - or - just change log loss to be positive and minimize the error
-
-do a prediction of the CV error with the out of bag sample
-
-some node divisions only have a single path with traversal, these should be backed up a level to avoid the extra comparison
 
 add the probability value to the tree output at the end
 
 changes are better suited to go lower in the tree as the generation progresses (much hard to make a good move at the top of tree?)
-
-output some graph metrics (max depth, etc.)
-
-is it possible or useful to shoot for a specific score on each generation (i.e. stop at 0.45 loss)?
 
 stop making new trees at some point?  or have a means of letting the randomness in to the next round... then see if these are ever used
 
@@ -43,19 +30,25 @@ need to capture those data points which are not getting classified and build a t
 
 need to use some validation measure to help grow the trees... avoid overfitting when using NO CLASS
 
-remove the LinearComboTreeTest since it does not show up significantly
-
-make the UI pieces dock so that it can be maximized
-
 review some of the trees created to see how deep/overfit they are
 
 create a "ReplaceNodeWithAnotherNode" to provide a single logic for moving nodes around on a tree
  - needs to handle the case when the node to move is the root
 
-apply the penalty for percent classified on a sliding scale of sorts (avoid sharp falloff at limit) = hinged loss type of function
+is it possible to use a score for the node that is different than simple counts? something that considers the TERM TO that was called?
+
+make Random a singelton of some class to avoid passing around so many references.
+
+is it possible to pick different trees from the final populatiojn which are different? (save trouble of running tons of times)
 
 notes for next commit:
- - removed traverseCount from the XML file output, see #62
- - removed the default normalization step that was being done... creates issues for different data loads
- - added a pruning operation in the GeneticOperation class that shortens trees that only have a single subNode being traversed.  It bumps that used node to the parent position and drops the others., see #45
- - attempted to add a hinged loss to the percent classified part of the metric to allow for a soft overshoot
+ - UI parts dock to the form so that it can be maximized
+ - removed some of the matrix output to (hopefully) improve speed
+ - added List for data that is not included in the testing.  can be used for out of bag validation samples
+ - avoid creating results directory until it is needed
+ - removed the MissingTreeTest and the CategorySubsetTests which were in the Factory method
+ - added references for embedding Chrome in the application... will be used to get access to d3 for visualization
+ - pre compute the data loader columns to hopefully speed things up
+ - using range for double calculations (avoid subtraction several times)
+ - removed the bounding on the correct class when calculating a log loss
+ - removed results reference from TraverseData, now using the root node to get final result

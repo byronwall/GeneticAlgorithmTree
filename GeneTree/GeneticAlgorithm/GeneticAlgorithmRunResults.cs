@@ -30,20 +30,24 @@ namespace GeneTree
 			_matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
 		}
 		
+		const double EPSILON = 1E-15;
+		const double LARGE_EPSILON = 1 - EPSILON;
+		
 		public void ProcessScoresAfterTraverse()
 		{
 			double totalLoss = 0.0;
+				
 			foreach (var item in node_assoc)
 			{
 				//determine the correct class for data point
 				double pt_class = item.Item1._classification._value;
-				pt_class = Math.Min(Math.Max(1E-15, pt_class), 1 - 1E-15);
 				
 				//get the probability for the leaf node (score)
-				double leaf_score = item.Item2.matrix.PositiveClassProbability;
-				leaf_score = Math.Min(Math.Max(1E-15, leaf_score), 1 - 1E-15);
+				double node_prob = 0.9 * item.Item2.matrix.PositiveClassProbability + 0.1 * item.Item2.Classification;
 				
-				item.Item2.ProbPrediction = item.Item2.matrix.PositiveClassProbability;
+				double leaf_score = Math.Min(Math.Max(EPSILON, node_prob), LARGE_EPSILON);
+				
+				item.Item2.ProbPrediction = node_prob;
 				
 				//peform a loss function on those margins (use exp loss for now)
 				double loss = pt_class * Math.Log(leaf_score) + (1 - pt_class) * Math.Log(1 - leaf_score);
@@ -67,7 +71,7 @@ namespace GeneTree
 			}
 		}
 		
-		public double GetPercentClassified
+		public double PercentClassified
 		{
 			get
 			{
@@ -75,23 +79,23 @@ namespace GeneTree
 			}
 		}
 
-		public double GetMetricResult
+		public double MetricResult
 		{
 			get
 			{
+				if (this.PercentClassified < ga_mgr._gaOptions.Eval_percentClass_min)
+				{
+					return double.MinValue;
+				}
 
 				double node_large_number = 10000;
-				double kappa_number = 10;
-				
-				double class_number = (this.GetPercentClassified < ga_mgr._gaOptions.Eval_percentClass_min) ?
-					((this.GetPercentClassified < ga_mgr._gaOptions.Eval_percentClass_min / 2) ? 0 : ga_mgr._gaOptions.Eval_percentClass_min) : 3;
+				double kappa_number = 12;
+				double class_number = 5;
 				
 				double score = 1.0 / AverageLoss *
-				               (class_number / (1 - this.GetPercentClassified + class_number)) *
+				               (class_number / (1 - this.PercentClassified + class_number)) *
 				               (node_large_number / (tree_nodeCount + node_large_number)) *
 				               (kappa_number / (1 - this._matrix.GetKappa() + kappa_number));
-				
-				//TODO might need a check for NaN, not sure how that affects sorting
 				
 				return score;
 			}
@@ -101,10 +105,10 @@ namespace GeneTree
 		{
 			StringBuilder sb = new StringBuilder();
 			
-			sb.AppendLine(string.Format("[Score={0}]", GetMetricResult));
+			sb.AppendLine(string.Format("[Score={0}]", MetricResult));
 			sb.AppendLine(string.Format("[LogLoss={0}]", AverageLoss));
 			sb.AppendLine(string.Format("[Kappa={0}]", _matrix.GetKappa()));
-			sb.AppendLine(string.Format("[PercClassed={0:0.000}]", GetPercentClassified));
+			sb.AppendLine(string.Format("[PercClassed={0:0.000}]", PercentClassified));
 			sb.AppendLine(string.Format("[Matrix={0}]", _matrix));
 			sb.AppendLine(string.Format("[Count_allData={0}]", count_allData));
 			sb.AppendLine(string.Format("[Count_classedData={0}]", count_classedData));
@@ -112,8 +116,5 @@ namespace GeneTree
 			
 			return sb.ToString();
 		}
-
-
 	}
 }
-

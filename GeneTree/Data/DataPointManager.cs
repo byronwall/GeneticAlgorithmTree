@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,6 +22,12 @@ namespace GeneTree
 		
 		public List<int> classCounts = new List<int>();
 		
+		Dictionary<string, DataColumn> _columnMapping = new Dictionary<string, DataColumn>();
+
+		public List<DataPoint> _pointsToTest = new List<DataPoint>();
+		
+		public List<DataPoint> _pointsNotUsedToTest = new List<DataPoint>();
+		
 		public double GetRandomClassification(Random rando)
 		{
 			double prob_of_no_class = 0.05;
@@ -32,8 +39,6 @@ namespace GeneTree
 			
 			return classes[rando.Next(classes.Length)];
 		}
-
-		public List<DataPoint> _pointsToTest = new List<DataPoint>();
 		
 		public void UpdateSubsetOfDatapoints()
 		{
@@ -46,6 +51,7 @@ namespace GeneTree
 			fractionToKeep = Math.Min(Math.Max(fractionToKeep, 0), 1);
 			
 			_pointsToTest.Clear();
+			_pointsNotUsedToTest.Clear();
 			
 			foreach (var dataPoint in _dataPoints)
 			{
@@ -53,15 +59,15 @@ namespace GeneTree
 				{
 					_pointsToTest.Add(dataPoint);
 				}
+				else
+				{
+					_pointsNotUsedToTest.Add(dataPoint);
+				}
 			}
 		}
 		
-		/// <summary>
-		/// Loads the configuration file and sets up the columns based on it.
-		/// </summary>
-		/// <param name="config_path"></param>
 		public void SetConfiguration(string config_path)
-		{			
+		{
 			_config = DataPointConfiguration.LoadFromFile(config_path);
 			
 			_columnMapping = new Dictionary<string, DataColumn>();
@@ -71,7 +77,7 @@ namespace GeneTree
 				//TODO get rid of this switch... push it into the data column as a static factory or such
 				DataColumn dc = null;
 				switch (column.Value)
-				{						
+				{
 					case DataColumn.DataValueTypes.NUMBER:
 						dc = new DoubleDataColumn();
 						break;
@@ -85,7 +91,7 @@ namespace GeneTree
 						break;
 					default:
 						throw new ArgumentOutOfRangeException();
-				}				
+				}
 				
 				if (dc != null)
 				{
@@ -115,8 +121,6 @@ namespace GeneTree
 				}
 			}
 		}
-		
-		Dictionary<string, DataColumn> _columnMapping = new Dictionary<string, DataColumn>();
 
 		public void DetermineClasses()
 		{
@@ -157,12 +161,17 @@ namespace GeneTree
 			var header_line = reader.ReadLine();
 			string[] headers = header_line.Split(',');
 			
-			var header_mapping = new 	Dictionary<int, string>();
+			var header_mapping = new Dictionary<int, string>();
 			
 			for (int i = 0; i < headers.Length; i++)
 			{
 				header_mapping.Add(i, headers[i]);
 			}
+			
+			//this associates the column integer to the data column, assigning null to missing ones (i.e. the ID)
+			var colMapping = header_mapping.ToDictionary(
+				                 hm => hm.Key,
+				                 hm => (_columnMapping.ContainsKey(hm.Value) ? _columnMapping[hm.Value] : null));
 			
 			//parse the CSV data and create data points
 			while (!reader.EndOfStream)
@@ -176,9 +185,9 @@ namespace GeneTree
 				}
 				
 				string[] values = line.Split(',');
-
+				
 				//create data point from the string line
-				DataPoint dp = DataPoint.FromString(values, header_mapping, _columnMapping, _config);								
+				DataPoint dp = DataPoint.FromString(values, header_mapping, colMapping, _config);								
 				_dataPoints.Add(dp);
 			}
 			

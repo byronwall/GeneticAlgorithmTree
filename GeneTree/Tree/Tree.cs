@@ -161,7 +161,9 @@ namespace GeneTree
 			return _root.TraverseData(point, results);
 		}
 		
-		public void ProcessDataThroughTree(DataPointManager dataPointMgr, GeneticAlgorithmRunResults results)
+		public void ProcessDataThroughTree(DataPointManager dataPointMgr, 
+			GeneticAlgorithmRunResults results,
+			IEnumerable<DataPoint> dataPoints)
 		{
 			//reset traverse counts
 			//double check on traverse count
@@ -186,8 +188,7 @@ namespace GeneTree
 				} 
 			}
 			
-			//TODO this shoudl not be working directly on pointsToTest... need to send that as a parameter
-			foreach (var dataPoint in dataPointMgr._pointsToTest)
+			foreach (var dataPoint in dataPoints)
 			{
 				results.count_allData++;
 				TraverseData(dataPoint, results);
@@ -197,6 +198,7 @@ namespace GeneTree
 			results.ProcessScoresAfterTraverse();
 			
 			results.tree_nodeCount = _nodes.Count;
+			results._matrix = this._root.matrix;
 
 			//store the results for future use
 			_currentResults = results;			
