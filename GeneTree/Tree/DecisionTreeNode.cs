@@ -87,7 +87,6 @@ namespace GeneTree
 		{
 			DecisionTreeNode new_node = new DecisionTreeNode();
 			new_node.Test = this.Test.Copy();
-			new_node.matrix = new ConfusionMatrix(this.matrix._size);
 			return new_node;
 		}
 

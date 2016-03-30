@@ -152,16 +152,25 @@ namespace GeneTree
 		}
 		void Btn_predictAllClick(object sender, EventArgs e)
 		{
-			//TODO make this path a dialog selector
-			//get the folder to load trees from
-			
-			string path = @"C:\projects\gene-tree\GeneTree\bin\Debug\tree outputs\635945481133886798";
-			
-			StartBackgroundWorker(new Action(() => ga_mgr.DoAllPredictions(path)));
+			if (Directory.Exists(activeFileOrFolder))
+			{
+				StartBackgroundWorker(new Action(() => ga_mgr.DoAllPredictions(activeFileOrFolder)));
+			}
+			else
+			{
+				MessageBox.Show("drop a valid folder for predictions");
+			}
 		}
 		void Btn_predictClick(object sender, EventArgs e)
 		{
-			StartBackgroundWorker(new Action(ga_mgr.DoSomePrediction));
+			if (File.Exists(activeFileOrFolder))
+			{
+				StartBackgroundWorker(new Action(() => ga_mgr.DoSomePrediction(activeFileOrFolder)));
+			}
+			else
+			{
+				MessageBox.Show("drop a valid file");
+			}
 		}
 		
 		void StartBackgroundWorker(Action action)
@@ -174,9 +183,25 @@ namespace GeneTree
 			
 			bw.RunWorkerAsync(action);
 		}
-		void Form1Load(object sender, EventArgs e)
+		
+		string activeFileOrFolder;
+		
+		void Form1DragDrop(object sender, DragEventArgs e)
 		{
-	
+			var data = e.Data.GetData(DataFormats.FileDrop) as string[];
+			
+			if (data != null)
+			{
+				activeFileOrFolder = data[0];
+				statusText.Text = activeFileOrFolder;
+			}
+		}
+		void Form1DragEnter(object sender, DragEventArgs e)
+		{
+			if (e.Data.GetDataPresent(DataFormats.FileDrop))
+			{
+				e.Effect = DragDropEffects.Copy;
+			}
 		}
 	}
 }

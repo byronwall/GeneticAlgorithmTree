@@ -43,7 +43,7 @@ namespace GeneTree
 				double pt_class = item.Item1._classification._value;
 				
 				//get the probability for the leaf node (score)
-				double node_prob = 0.9 * item.Item2.matrix.PositiveClassProbability + 0.1 * item.Item2.Classification;
+				double node_prob = item.Item2.matrix.PositiveClassProbability;
 				
 				double leaf_score = Math.Min(Math.Max(EPSILON, node_prob), LARGE_EPSILON);
 				
@@ -88,14 +88,14 @@ namespace GeneTree
 					return double.MinValue;
 				}
 
-				double node_large_number = 10000;
+				double node_large_number = 100000;
 				double kappa_number = 12;
 				double class_number = 5;
 				
-				double score = 1.0 / AverageLoss *
+				double score = 1.0 / AverageLoss; /* *
 				               (class_number / (1 - this.PercentClassified + class_number)) *
 				               (node_large_number / (tree_nodeCount + node_large_number)) *
-				               (kappa_number / (1 - this._matrix.GetKappa() + kappa_number));
+				               (kappa_number / (1 - this._matrix.GetKappa() + kappa_number));*/
 				
 				return score;
 			}

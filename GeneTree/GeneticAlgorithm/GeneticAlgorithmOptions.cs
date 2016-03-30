@@ -173,7 +173,7 @@ namespace GeneTree
 			}
 		}
 
-		public int max_node_count_for_new_tree = 10;
+		public int max_node_count_for_new_tree = 12;
 		public int Max_node_count_for_new_tree
 		{
 			get

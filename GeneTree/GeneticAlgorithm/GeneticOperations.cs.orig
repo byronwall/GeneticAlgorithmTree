@@ -112,7 +112,7 @@ namespace GeneTree
 
 		public static IEnumerable<Tree> CreateRandomTree(GeneticAlgorithmManager ga_mgr, List<Tree> treesInPopulation)
 		{
-			Tree tree = CreateRandomTree(ga_mgr);
+			Tree tree = ga_mgr.CreateRandomTree();
 			tree._source = "new tree";
 			yield return tree;
 		}
@@ -241,10 +241,6 @@ namespace GeneTree
 					}
 					else
 					{
-						if (node._parent == null)
-						{
-							
-						}
 						node._parent.UpdateChildReference(node, nodeToKeep);
 					}
 					
@@ -300,26 +296,10 @@ namespace GeneTree
 					var results = new GeneticAlgorithmRunResults(ga_mgr);
 					node1_copy._tree.ProcessDataThroughTree(ga_mgr.dataPointMgr, results, ga_mgr.dataPointMgr._pointsToTest);
 					
-					//check the result of the split
-					var gini_d = node1_copy.matrix.GiniImpuritySqrt;
-					
-					double gini_split = 0.0;
-					int count = 0;
-					
-					foreach (var node in node1_copy._subNodes)
-					{
-						gini_split += node.matrix._count * node.matrix.GiniImpuritySqrt;
-						count += node.matrix._count;
-					}
-					
-					gini_split /= count;
-					
-					double gini_gain = gini_d - gini_split;
-					
-					if (gini_gain > best_purity)
+					if (-results.AverageLoss > best_purity)
 					{
 						best_split = split;
-						best_purity = gini_gain;
+						best_purity = -results.AverageLoss;
 					}
 				}
 				
@@ -335,19 +315,19 @@ namespace GeneTree
 				}
 				//iterate through all values, make split, test impurity
 				var values = ga_mgr.dataPointMgr._pointsToTest.Select(c => c._data[test._param]);
-				IEnumerable<double> all_uniques = values.Where(c => !c._isMissing).Select(c => c._value).Distinct().OrderBy(c => c);
+				var all_uniques = values.Where(c => !c._isMissing).Select(c => c._value).Distinct().OrderBy(c => c).ToArray();
 				
-				var unique_count = all_uniques.Count();
-				if (unique_count > 10)
+				List<double> all_splits = new List<double>();
+				for (int i = 1; i < all_uniques.Length; i++)
 				{
-					all_uniques = all_uniques.TakeEvery(unique_count / 10 + 1);
+					all_splits.Add(0.5 * (all_uniques[i] + all_uniques[i - 1]));
 				}
 				
 				double best_split = double.NaN;
 				double best_purity = double.MinValue;
 				
 				//TODO improve this selection for how many split points to consider
-				foreach (var split in all_uniques)
+				foreach (var split in all_splits.TakeEvery(all_splits.Count / 10 + 1))
 				{
 					//change the test value and find the best purity
 					test._valTest = split;
@@ -356,25 +336,10 @@ namespace GeneTree
 					
 					node1_copy._tree.ProcessDataThroughTree(ga_mgr.dataPointMgr, results, ga_mgr.dataPointMgr._pointsToTest);
 					
-					var gini_d = node1_copy.matrix.GiniImpuritySqrt;
-					
-					double gini_split = 0.0;
-					int count = 0;
-					
-					foreach (var node in node1_copy._subNodes)
-					{
-						gini_split += node.matrix._count * node.matrix.GiniImpuritySqrt;
-						count += node.matrix._count;
-					}
-					
-					gini_split /= count;
-					
-					double gini_gain = gini_d - gini_split;
-					
-					if (gini_gain > best_purity)
+					if (-results.AverageLoss > best_purity)
 					{
 						best_split = split;
-						best_purity = gini_gain;
+						best_purity = -results.AverageLoss;
 					}
 				}
 				
@@ -400,10 +365,6 @@ namespace GeneTree
 			
 			ClassificationTreeNode node1 = node_picker.PickRandom(ga_mgr.rando);
 			tree1.SetStructuralLocationsForNodes();
-			if (node1.matrix == null)
-			{
-				
-			}
 			var matrix_rows = node1.matrix.GetRowsOrderedByCount().ToList();
 			
 			//trap is here in case there are fewer than 2 "top" rows to split on
@@ -420,23 +381,35 @@ namespace GeneTree
 				var node1_decision = new YesNoMissingTreeNode();
 				
 				node1_decision.CreateRandom(ga_mgr);
+				node1_decision.matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
 				node1_decision._parent = node1_copy._parent;
 				
+				var class_picker = new WeightedSelector<int>(matrix_rows);
+				
 				var item1 = node1.Classification;
-				var item2 = 0;
+				var item2 = class_picker.PickRandom(ga_mgr.rando);
+				
+				while (item1 == item2)
+				{
+					item2 = class_picker.PickRandom(ga_mgr.rando);
+				}
+				
 				var item3 = 0;
 				
 				//create the two classification nodes
 				var node1a_class = new ClassificationTreeNode();
 				node1a_class.Classification = item1;
+				node1a_class.matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
 				node1a_class._parent = node1_decision;
 				
 				var node1b_class = new ClassificationTreeNode();
 				node1b_class.Classification = item2;
+				node1b_class.matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
 				node1b_class._parent = node1_decision;
 				
 				var node1c_class = new ClassificationTreeNode();
 				node1c_class.Classification = item3;
+				node1c_class.matrix = new ConfusionMatrix(ga_mgr.dataPointMgr.classes.Length);
 				node1c_class._parent = node1_decision;
 				
 				node1_decision._trueNode = node1a_class;
@@ -462,104 +435,6 @@ namespace GeneTree
 				}
 			
 				yield return tree1_copy;
-			}
-		}
-		public static Tree CreateRandomTree(GeneticAlgorithmManager ga_mgr)
-		{			
-			//build a random tree
-			Tree tree = new Tree();
-			
-			//this is a dummy node that will get split immediately
-			ClassificationTreeNode root = new ClassificationTreeNode();
-			tree.AddRootToTree(root);
-			
-			var newRoot = SplitClassificationNode(root, ga_mgr);
-			
-			//now have three nodes under the root
-			
-			//run a queue to create children for non-terminal nodes
-			var terminalNodesToSplit = new Queue<ClassificationTreeNode>();
-			
-			foreach (var subNode in newRoot._subNodes)
-			{
-				terminalNodesToSplit.Enqueue(subNode as ClassificationTreeNode);
-			}
-			
-			while (terminalNodesToSplit.Count > 0 && tree._nodes.Count < ga_mgr._gaOptions.Max_node_count_for_new_tree)
-			{
-				var node = terminalNodesToSplit.Dequeue();
-				
-				//this will progressively split the nodes if rando is less than target
-				if (ga_mgr.rando.NextDouble() > ga_mgr._gaOptions.Prob_node_terminal)
-				{
-					var newNode = SplitClassificationNode(node, ga_mgr);
-				
-					foreach (var subNode in newNode._subNodes)
-					{
-						terminalNodesToSplit.Enqueue(subNode as ClassificationTreeNode);
-					}
-				}
-			}
-			
-			return tree;
-		}
-		
-		public static TreeNode SplitClassificationNode(ClassificationTreeNode nodeToReplace, GeneticAlgorithmManager ga_mgr)
-		{
-			var nodeNewDecision = new YesNoMissingTreeNode();
-				
-			nodeNewDecision.CreateRandom(ga_mgr);
-				
-			//TODO unhardcode this items
-			var item1 = 0.0;
-			var item2 = 0.0;
-			var item3 = 0.0;
-				
-			//create the two classification nodes
-			var nodeTrue = new ClassificationTreeNode();
-			nodeTrue.Classification = item1;
-			nodeTrue._parent = nodeNewDecision;
-				
-			var nodeFalse = new ClassificationTreeNode();
-			nodeFalse.Classification = item2;
-			nodeFalse._parent = nodeNewDecision;
-				
-			var nodeMissing = new ClassificationTreeNode();
-			nodeMissing.Classification = item3;
-			nodeMissing._parent = nodeNewDecision;
-				
-			nodeNewDecision._trueNode = nodeTrue;
-			nodeNewDecision._falseNode = nodeFalse;
-			nodeNewDecision._missingNode = nodeMissing;
-				
-			ReplaceOneNodeWithAnother(nodeToReplace, nodeNewDecision);
-			//return the new tree with that change
-			
-			//try to optimize the node
-			bool opTest = OptimizeTest(nodeNewDecision, ga_mgr);
-			
-			return nodeNewDecision;
-		}
-		
-		public static void ReplaceOneNodeWithAnother(TreeNode currentNode, TreeNode newNode)
-		{
-			var tree = currentNode._tree;
-			
-			newNode._parent = currentNode._parent;
-			
-			//update refs
-			currentNode.UpdateParentReference(newNode);
-			
-			//remove current node
-			tree.RemoveNodeWithChildren(currentNode);
-			
-			//add new node
-			tree.AddNodeWithChildren(newNode);
-			
-			//set root if needed
-			if (tree._root == currentNode)
-			{
-				tree._root = newNode;
 			}
 		}
 	}

@@ -38,6 +38,7 @@
         	this.button1 = new System.Windows.Forms.Button();
         	this.statusStrip1 = new System.Windows.Forms.StatusStrip();
         	this.prog_ongoing = new System.Windows.Forms.ToolStripProgressBar();
+        	this.statusText = new System.Windows.Forms.ToolStripStatusLabel();
         	this.menuStrip1 = new System.Windows.Forms.MenuStrip();
         	this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
         	this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -51,6 +52,7 @@
         	this.button2 = new System.Windows.Forms.Button();
         	this.btn_predictAll = new System.Windows.Forms.Button();
         	this.panel1 = new System.Windows.Forms.Panel();
+        	this.btnPredictFile = new System.Windows.Forms.Button();
         	this.tabControl1 = new System.Windows.Forms.TabControl();
         	this.tabStatus = new System.Windows.Forms.TabPage();
         	this.tabBrowser = new System.Windows.Forms.TabPage();
@@ -138,7 +140,8 @@
         	// statusStrip1
         	// 
         	this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-			this.prog_ongoing});
+			this.prog_ongoing,
+			this.statusText});
         	this.statusStrip1.Location = new System.Drawing.Point(0, 409);
         	this.statusStrip1.Name = "statusStrip1";
         	this.statusStrip1.Size = new System.Drawing.Size(830, 22);
@@ -149,6 +152,12 @@
         	// 
         	this.prog_ongoing.Name = "prog_ongoing";
         	this.prog_ongoing.Size = new System.Drawing.Size(200, 16);
+        	// 
+        	// statusText
+        	// 
+        	this.statusText.Name = "statusText";
+        	this.statusText.Size = new System.Drawing.Size(59, 17);
+        	this.statusText.Text = "statusText";
         	// 
         	// menuStrip1
         	// 
@@ -249,15 +258,16 @@
         	// 
         	this.btn_predictAll.Location = new System.Drawing.Point(12, 348);
         	this.btn_predictAll.Name = "btn_predictAll";
-        	this.btn_predictAll.Size = new System.Drawing.Size(116, 23);
+        	this.btn_predictAll.Size = new System.Drawing.Size(60, 23);
         	this.btn_predictAll.TabIndex = 14;
-        	this.btn_predictAll.Text = "predict all trees";
+        	this.btn_predictAll.Text = "folder";
         	this.btn_predictAll.UseVisualStyleBackColor = true;
         	this.btn_predictAll.Click += new System.EventHandler(this.Btn_predictAllClick);
         	// 
         	// panel1
         	// 
         	this.panel1.Controls.Add(this.button1);
+        	this.panel1.Controls.Add(this.btnPredictFile);
         	this.panel1.Controls.Add(this.btn_predictAll);
         	this.panel1.Controls.Add(this.button2);
         	this.panel1.Controls.Add(this.btnPoolRando);
@@ -273,6 +283,16 @@
         	this.panel1.Name = "panel1";
         	this.panel1.Size = new System.Drawing.Size(145, 385);
         	this.panel1.TabIndex = 15;
+        	// 
+        	// btnPredictFile
+        	// 
+        	this.btnPredictFile.Location = new System.Drawing.Point(75, 348);
+        	this.btnPredictFile.Name = "btnPredictFile";
+        	this.btnPredictFile.Size = new System.Drawing.Size(60, 23);
+        	this.btnPredictFile.TabIndex = 14;
+        	this.btnPredictFile.Text = "file";
+        	this.btnPredictFile.UseVisualStyleBackColor = true;
+        	this.btnPredictFile.Click += new System.EventHandler(this.Btn_predictClick);
         	// 
         	// tabControl1
         	// 
@@ -308,6 +328,7 @@
         	// 
         	// Form1
         	// 
+        	this.AllowDrop = true;
         	this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
         	this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         	this.ClientSize = new System.Drawing.Size(830, 431);
@@ -319,7 +340,8 @@
         	this.MainMenuStrip = this.menuStrip1;
         	this.Name = "Form1";
         	this.Text = "GeneTree";
-        	this.Load += new System.EventHandler(this.Form1Load);
+        	this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Form1DragDrop);
+        	this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Form1DragEnter);
         	this.statusStrip1.ResumeLayout(false);
         	this.statusStrip1.PerformLayout();
         	this.menuStrip1.ResumeLayout(false);
@@ -362,6 +384,8 @@
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabStatus;
         private System.Windows.Forms.TabPage tabBrowser;
+        private System.Windows.Forms.ToolStripStatusLabel statusText;
+        private System.Windows.Forms.Button btnPredictFile;
     }
 }
 

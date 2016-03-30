@@ -118,21 +118,16 @@ namespace GeneTree
 				}
 			}
 		}
-			
 
-		public void RemoveChildrenFromNode(TreeNode node)
+		public void RemoveNodeWithChildren(TreeNode node)
 		{
+			//TODO consider setting the tree to null also
+			_nodes.Remove(node);
+			
 			foreach (var subNode in node._subNodes)
 			{
 				RemoveNodeWithChildren(subNode);
 			}
-		}
-
-		public void RemoveNodeWithChildren(TreeNode node)
-		{
-			_nodes.Remove(node);
-			
-			RemoveChildrenFromNode(node);
 		}
 		
 		public void AddRootToTree(TreeNode node)
@@ -161,7 +156,8 @@ namespace GeneTree
 			return _root.TraverseData(point, results);
 		}
 		
-		public void ProcessDataThroughTree(DataPointManager dataPointMgr, 
+		public void ProcessDataThroughTree(
+			DataPointManager dataPointMgr,
 			GeneticAlgorithmRunResults results,
 			IEnumerable<DataPoint> dataPoints)
 		{

@@ -73,7 +73,10 @@ namespace GeneTree
 		{
 			//sends things up the chain
 			//TODO clean up this null check.  was added for the case where running through tree outside of normal method (for predictions)
-			this.matrix.AddItem(actual, predicted);
+			if (this.matrix != null)
+			{
+				this.matrix.AddItem(actual, predicted);
+			}
 			
 			if (this._parent != null)
 			{

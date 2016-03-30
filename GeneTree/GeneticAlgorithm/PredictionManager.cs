@@ -18,13 +18,13 @@ namespace GeneTree
 			this.data_mgr = ga_mgr.dataPointMgr;
 		}
 
-		public void LoadTreeAndGenerateResults()
+		public void LoadTreeAndGenerateResults(string path)
 		{
 			//will process all of the data through a single tree
 			//need a tree to test
 			
 			//TODO generalize this file name/folder
-			Tree tree = Tree.ReadFromXmlFile(@"C:\projects\gene-tree\GeneTree\bin\Debug\tree outputs\635925414609611681\0 - 0.xml");
+			Tree tree = Tree.ReadFromXmlFile(path);
 			var results = new GeneticAlgorithmRunResults(ga_mgr);
 			
 			tree.ProcessDataThroughTree(data_mgr, results, data_mgr._dataPoints);

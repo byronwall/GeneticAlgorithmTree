@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using MoreLinq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace GeneTree
 {
@@ -37,19 +39,23 @@ namespace GeneTree
 		private List<Tree> CreateRandomPoolOfTrees(int size)
 		{
 			var trees = new List<Tree>();
-			for (int i = 0; i < size; i++)
-			{
-				trees.Add(CreateRandomTree());
-			}
+			
+			Parallel.For(0, size, index =>
+				{
+					var tree = GeneticOperations.CreateRandomTree(this);
+					
+					lock (trees)
+					{
+						trees.Add(tree);
+					}
+				});
 			return trees;
 		}
 
 		public void CreatePoolOfGoodTrees()
 		{
-			List<Tree> theBest = new List<Tree>();
-			
-			var ticks = DateTime.Now.Ticks;
-			var dirPath = @"tree outputs\" + ticks;
+			long ticks = DateTime.Now.Ticks;
+			string dirPath = @"tree outputs\" + ticks;
 			
 			_gaOptions.populationSize = _gaOptions.seq_inner_population;			
 			_gaOptions.generations = _gaOptions.seq_inner_generations;
@@ -60,14 +66,16 @@ namespace GeneTree
 				
 				dataPointMgr.UpdateSubsetOfDatapoints(_gaOptions.prob_to_keep_data, rando);
 					
-				var trees = ProcessTheNextGeneration();
+				List<Tree> trees = ProcessTheNextGeneration();
 				
 				if (!Directory.Exists(dirPath))
 				{
 					Directory.CreateDirectory(dirPath);
 				}
 				
-				trees[0].WriteToXmlFile(Path.Combine(dirPath, string.Format("{0}.xml", run)));
+				var bestTree = trees[0];
+				bestTree.WriteToXmlFile(Path.Combine(dirPath, 
+						string.Format("{0} {1:0.0000}.xml", run, bestTree._prevResults.AverageLoss)));
 			}
 		}
 		
@@ -80,6 +88,12 @@ namespace GeneTree
 			foreach (var tree in trees)
 			{
 				GeneticAlgorithmRunResults results = null;
+				
+				//TODO figure out why a NullRefExc came through here
+				if (tree == null)
+				{
+					continue;
+				}
 				
 				//quick pass through for trees already processed
 				if (!tree._isDirty)
@@ -122,16 +136,49 @@ namespace GeneTree
 		public List<Tree> ProcessTheNextGeneration()
 		{
 			//TODO make this a parameter
+			
 			var starter = CreateRandomPoolOfTrees(_gaOptions.populationSize * 1);
+			
 			return ProcessTheNextGeneration(starter);
 		}
 
 		public List<Tree> ProcessTheNextGeneration(List<Tree> treesInPopulation)
 		{
-			//TODO add a step to check for "convergence" and stop iterating
+			//do an initial scoring
+			treesInPopulation = ScoreTreesAndReturnKept(treesInPopulation, 0);
+			
 			for (int generationNumber = 0; generationNumber < _gaOptions.generations; generationNumber++)
 			{
+				var newTreesThisGen = new List<Tree>();
+				
 				Logger.WriteLine("generation: " + generationNumber);
+				
+				//this allows probs to change after each generation if desired
+				var operations = new List<Tuple<GeneticOperations.GeneticOperation, double>>();
+					
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SwapNodesBetweenTrees, _gaOptions.Prob_ops_swap));
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SplitNodeAndOptimizeTests, _gaOptions.prob_node_split));
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.CreateRandomTree, _gaOptions.Prob_ops_new_tree));
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.OptimizeSplitForNode, 10.0));
+				//operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.OptimizeClassesForTree, 10.0));
+				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.DeleteNodeFromTree, _gaOptions.prob_ops_delete));
+				//operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SuperSplit, 5.0));
+					
+				var operation_picker = new WeightedSelector<GeneticOperations.GeneticOperation>(operations);
+				
+				Parallel.For(0, _gaOptions.PopulationSize, index =>
+					{						
+						var operation = operation_picker.PickRandom(rando);
+						var newTrees = operation(this, treesInPopulation).ToList();
+						
+						//TODO determine if this is needed
+						lock (newTreesThisGen)
+						{
+							newTreesThisGen.AddRange(newTrees);
+						}
+					});
+				
+				treesInPopulation.AddRange(newTreesThisGen);
 				
 				treesInPopulation = ScoreTreesAndReturnKept(treesInPopulation, generationNumber);
 				
@@ -166,25 +213,6 @@ namespace GeneTree
 					Logger.WriteLine(tree._prevResults);					
 				}
 				
-				//this allows probs to change after each generation if desired
-				var operations = new List<Tuple<GeneticOperations.GeneticOperation, double>>();
-					
-				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SwapNodesBetweenTrees, _gaOptions.Prob_ops_swap));
-				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.SplitNodeAndOptimizeTests, _gaOptions.prob_node_split));
-				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.CreateRandomTree, _gaOptions.Prob_ops_new_tree));
-				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.OptimizeSplitForNode, 10.0));
-				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.OptimizeClassesForTree, 10.0));
-				operations.Add(Tuple.Create((GeneticOperations.GeneticOperation)GeneticOperations.DeleteNodeFromTree, _gaOptions.prob_ops_delete));
-					
-				var operation_picker = new WeightedSelector<GeneticOperations.GeneticOperation>(operations);
-				
-				
-				for (int populationNumber = 0; populationNumber < _gaOptions.populationSize; populationNumber++)
-				{
-					var operation = operation_picker.PickRandom(rando);
-					treesInPopulation.AddRange(operation(this, treesInPopulation));
-				}
-				
 				OnProgressUpdated(100 * generationNumber / Math.Max(_gaOptions.generations, 1));
 			}
 
@@ -199,44 +227,12 @@ namespace GeneTree
 			dataPointMgr.LoadFromCsv(csv_path);
 		}
 		
-		public TreeNode CreateRandomNode(Tree tree, bool ShouldForceTerminal = false)
-		{
-			//TODO remove this completely
-			return TreeNode.TreeNodeFactory(this, ShouldForceTerminal, tree);
-		}
-
-		//TODO move this somewhere else
-		public Tree CreateRandomTree()
-		{
-			//build a random tree
-			Tree tree = new Tree();
-			
-			TreeNode root = CreateRandomNode(tree);
-			tree.AddRootToTree(root);
-			
-			//run a queue to create children for non-terminal nodes
-			Queue<TreeNode> nonTermNodes = new Queue<TreeNode>();
-			nonTermNodes.Enqueue(root);
-			while (nonTermNodes.Count > 0)
-			{
-				var node = nonTermNodes.Dequeue();
-				node.FillNodeWithRandomChildrenIfNeeded(this);
-				
-				foreach (var subNode in node._subNodes)
-				{
-					nonTermNodes.Enqueue(subNode);
-				}
-			}
-			
-			return tree;
-		}
-		
-		public void DoSomePrediction()
+		public void DoSomePrediction(string path)
 		{
 			//TODO this method is poorly named and a hack
 			PredictionManager predMgr = new PredictionManager(this);
 			
-			predMgr.LoadTreeAndGenerateResults();
+			predMgr.LoadTreeAndGenerateResults(path);
 			
 			OnProgressUpdated(100);
 		}

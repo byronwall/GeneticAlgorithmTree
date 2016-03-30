@@ -1,7 +1,5 @@
 ﻿//this files contains some of the ongoing notes.  things in here should be cleared out and made into Issues or just implemented.
 
-output an initial status to make it clear that the program is running
-
 take nodes with a large NO CLASS and see if they can be split or reclassed better.  especially bad when all are NO CLASS but still might be good
 
 really need to find a way to go after the small side of the classifier: group 0 has an awful success rate
@@ -13,8 +11,6 @@ add the missing count to the output summary
 use a weighted selector to choose which trees to pick nodes from
 
 create some synthetic data in the program so that is it easier to determine the results of a given run
-
-add the probability value to the tree output at the end
 
 changes are better suited to go lower in the tree as the generation progresses (much hard to make a good move at the top of tree?)
 
@@ -35,20 +31,33 @@ review some of the trees created to see how deep/overfit they are
 create a "ReplaceNodeWithAnotherNode" to provide a single logic for moving nodes around on a tree
  - needs to handle the case when the node to move is the root
 
-is it possible to use a score for the node that is different than simple counts? something that considers the TERM TO that was called?
-
 make Random a singelton of some class to avoid passing around so many references.
 
-is it possible to pick different trees from the final populatiojn which are different? (save trouble of running tons of times)
+is it possible to pick different trees from the final population which are different? (save trouble of running tons of times)
+
+logger should write at the end of a population
+
+get the total size of the population in addition to percents
+
+super split and other optimizes should force the categories to the best ones in case classification is used in metric
+
+generate better trees when creating them from scratch (maybe do a a split and optimize each time)
+
+can the load step be optimized with multiple cores?
+
+prevent the case where all nodes go NO CLASS and break things
+
+generate the new trees (if it works) on a Parallel process
+ - maybe make fewer of them to get started
+ 
+use the probability (node score) as evidence for the classification it is assigned to
+ - allows for target high prob nodes for swapping (regardless of class)
+ - allows for splitting low prob nodes to get better movement
+ - allows for joining nodes that are all calling the same things the same way (?)
 
 notes for next commit:
- - UI parts dock to the form so that it can be maximized
- - removed some of the matrix output to (hopefully) improve speed
- - added List for data that is not included in the testing.  can be used for out of bag validation samples
- - avoid creating results directory until it is needed
- - removed the MissingTreeTest and the CategorySubsetTests which were in the Factory method
- - added references for embedding Chrome in the application... will be used to get access to d3 for visualization
- - pre compute the data loader columns to hopefully speed things up
- - using range for double calculations (avoid subtraction several times)
- - removed the bounding on the correct class when calculating a log loss
- - removed results reference from TraverseData, now using the root node to get final result
+ - modified form so that dropping a folder/file copies it to a variable.  this variable is then used for prediction file/folder
+ - attempted to do scoring which considers the classificaiton, but it does not appear to offer anything
+ - average log loss added to the file name for outputs, could be parsed when predicting if needed
+ - using Parallel.For to generate the next generation to get the most out of multiple cores (seems to work)
+ - improved (?) the random tree generator to use intelligent splits instead of random tests

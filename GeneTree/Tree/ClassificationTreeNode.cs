@@ -59,14 +59,13 @@ namespace GeneTree
 		{
 			ClassificationTreeNode new_node = new ClassificationTreeNode();
 			new_node.Classification = this.Classification;
-			new_node.matrix = new ConfusionMatrix(this.matrix._size);
 			return new_node;
 		}
 
 		public override string ToString()
 		{
 			string output = Classification == -1.0 ? string.Format("NO CLASS") : string.Format("TERM to {0}", Classification);
-			return output + string.Format(" ({0})", this._traverseCount);
+			return output + string.Format(" ({0}, {1:0.000})", this._traverseCount, this.ProbPrediction);
 		}
 
 		public override void CreateRandom(GeneticAlgorithmManager ga_mgr)
